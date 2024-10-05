@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "census-alignment"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+dagster = "^1.8.10"
+dagster-webserver = "^1.8.10"
+geopandas = "^1.0.1"
+pandas = "^2.2.3"
+networkx = "^3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.dagster]
+module_name = "census_alignment.definitions"
+code_location_name = "census_alignment"

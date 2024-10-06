@@ -5,7 +5,7 @@ import networkx as nx
 import pandas as pd
 
 from census_alignment.resources import PathResource
-from dagster import asset
+from dagster import asset, AssetsDefinition, AssetIn
 from pathlib import Path
 
 
@@ -23,7 +23,7 @@ def get_vertices(gdf):
     return set(vertices)
 
 
-def get_clique_geometries(gdf, points, *, only_points=False):
+def get_clique_geometries(gdf: gpd.GeoDataFrame, points, *, only_points=False):
     series = gdf.set_index("CVEGEO")
     series = series["geometry"]
 
@@ -65,7 +65,7 @@ def merge_columns(source, target):
     return merged
 
 
-def process_df_pair(df_source, df_target):
+def process_df_pair(df_source: gpd.GeoDataFrame, df_target: gpd.GeoDataFrame) -> pd.DataFrame:
     sources = get_vertices(df_source)
     targets = get_vertices(df_target)
 
@@ -76,20 +76,17 @@ def process_df_pair(df_source, df_target):
     return merged
 
 
-@asset(deps=["extend_census"])
-def generate_initial_gcp_2000(path_resource: PathResource) -> None:
-    root_out_path = Path(path_resource.out_path)
+def initial_gcp_factory(year: int) -> AssetsDefinition:
+    @asset(name=f"generate_initial_gcp_{year}", ins={"census_extended": AssetIn(key=[f"extend_census_{year}"])})
+    def _asset(path_resource: PathResource, census_extended: dict) -> None:
+        out_path = Path(path_resource.out_path) / f"gcp_{year}_initial"
+        out_path.mkdir(exist_ok=True, parents=True)
 
-    extended_path = root_out_path / "census_extended"
+        for city, elem in census_extended.items():
+            df_source, df_target = elem
+            merged = process_df_pair(df_source, df_target)
+            merged.to_csv(out_path / f"{city}.points", index=False)
+    return _asset
 
-    out_path = root_out_path / "gcp_2000_initial"
-    out_path.mkdir(exist_ok=True, parents=True)
 
-    for path in extended_path.glob("*"):
-        if not path.is_dir():
-            continue
-
-        df_source = gpd.read_file(path / "2000.gpkg", engine="pyogrio")
-        df_target = gpd.read_file(path / "2010.gpkg", engine="pyogrio")
-        merged = process_df_pair(df_source, df_target)
-        merged.to_csv(out_path / f"{path.stem}.points", index=False)
+initial_gcp_assets = [initial_gcp_factory(year) for year in (1990, 2000)]

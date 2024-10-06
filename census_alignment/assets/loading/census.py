@@ -1,7 +1,7 @@
 import pandas as pd
 
 from census_alignment.resources import PathResource
-from dagster import asset, AssetExecutionContext
+from dagster import asset
 from pathlib import Path
 
 
@@ -80,7 +80,7 @@ def load_census_2020(path_resource: PathResource) -> pd.DataFrame:
 
 
 @asset
-def load_census(load_census_1990, load_census_2000, load_census_2010, load_census_2020) -> dict:
+def load_census(load_census_1990: pd.DataFrame, load_census_2000: pd.DataFrame, load_census_2010: pd.DataFrame, load_census_2020: pd.DataFrame) -> dict:
     return {
         1990: load_census_1990,
         2000: load_census_2000,

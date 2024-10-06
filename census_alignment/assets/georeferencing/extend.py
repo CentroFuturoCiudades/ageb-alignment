@@ -4,12 +4,11 @@ import geopandas as gpd
 import pandas as pd
 
 from census_alignment.resources import PathResource
-from dagster import asset, op
+from dagster import asset, AssetExecutionContext
 from pathlib import Path
 
 
-@op
-def get_outer_polygon(gdf):
+def get_outer_polygon(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     box = shapely.box(*gdf.total_bounds)
     box = shapely.buffer(box, 100)
 
@@ -30,34 +29,52 @@ def get_outer_polygon(gdf):
     return series
 
 
-@op
-def extend_gdf(gdf):
+def extend_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     gdf = gdf.copy()
     gdf["geometry"] = gdf["geometry"].make_valid()
     outer_poly = get_outer_polygon(gdf)
     gdf = pd.concat([gdf, outer_poly], ignore_index=True)
     return gdf
-
+    
 
 @asset(deps=["filter_census"])
-def extend_census(path_resource: PathResource) -> None:
-    root_out_path = Path(path_resource.out_path)
-    
-    filtered_path = root_out_path / "census_filtered"
-    
-    out_path = root_out_path / "census_extended"
-    out_path.mkdir(exist_ok=True, parents=True)
-
+def extend_census_2000(path_resource: PathResource) -> dict:
+    filtered_path = Path(path_resource.out_path) / "census_filtered"
+    out_dict = {}
     for path in filtered_path.glob("*"):
         if not path.is_dir():
             continue
 
         city = path.stem.casefold()
-        for year in (1990, 2000, 2010, 2020):
-            fpath = path / f"{year}.gpkg"
-            df = gpd.read_file(fpath, engine="pyogrio")
-            df = extend_gdf(df)
+        out_dict[city] = [
+            extend_gdf(gpd.read_file(path / "2000.gpkg", engine="pyogrio")),
+            extend_gdf(gpd.read_file(path / "2010.gpkg", engine="pyogrio"))
+        ]
+                    
+    return out_dict
+    
 
-            out_subdir = out_path / city
-            out_subdir.mkdir(exist_ok=True, parents=True)
-            df.to_file(out_subdir / f"{year}.gpkg")
+@asset(deps=["filter_census"])
+def extend_census_1990(context: AssetExecutionContext, path_resource: PathResource) -> dict:
+    filtered_path = Path(path_resource.out_path) / "census_filtered"
+    georeferenced_path = Path(path_resource.out_path) / "georeferenced_2000"
+    
+    out_dict = {}
+    for path in filtered_path.glob("*"):
+        if not path.is_dir():
+            continue
+        
+        city = path.stem.casefold()
+        source_path = filtered_path / f"{city}/1990.gpkg"
+        target_path = georeferenced_path / f"{city}.gpkg"
+
+        if not target_path.exists():
+            context.log.warning(f"Georeferenced data for {city} not found. Skipping.")
+            continue
+
+        out_dict[city] = [
+            extend_gdf(gpd.read_file(source_path, engine="pyogrio")),
+            extend_gdf(gpd.read_file(target_path, engine="pyogrio"))
+        ]
+
+    return out_dict

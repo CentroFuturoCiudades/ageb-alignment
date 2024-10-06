@@ -2,13 +2,13 @@ import geopandas as gpd
 import pandas as pd
 
 from census_alignment.resources import PathResource
-from dagster import asset, op
+from dagster import asset
 from pathlib import Path
 
 
 YEARS = (1990, 2000, 2010, 2020)
 
-@op
+
 def filter_by_metropoli(df: gpd.GeoDataFrame, metropoli: pd.DataFrame) -> gpd.GeoDataFrame:
     df = df.copy()
     df["stub"] = df["CVEGEO"].str[:5]
@@ -18,7 +18,6 @@ def filter_by_metropoli(df: gpd.GeoDataFrame, metropoli: pd.DataFrame) -> gpd.Ge
     return df
 
 
-@op
 def filter_and_merge(agebs: dict, census: dict, metropoli: pd.DataFrame) -> dict:
     agebs_filtered = {}
     for year in YEARS:

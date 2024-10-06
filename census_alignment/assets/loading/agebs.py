@@ -59,7 +59,7 @@ def load_agebs_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
 
 
 @asset
-def load_agebs(load_agebs_1990, load_agebs_2000, load_agebs_2010, load_agebs_2020) -> dict:
+def load_agebs(load_agebs_1990: gpd.GeoDataFrame, load_agebs_2000: gpd.GeoDataFrame, load_agebs_2010: gpd.GeoDataFrame, load_agebs_2020: gpd.GeoDataFrame) -> dict:
     return {
         1990: load_agebs_1990,
         2000: load_agebs_2000,

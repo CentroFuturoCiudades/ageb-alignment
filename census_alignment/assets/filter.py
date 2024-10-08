@@ -42,4 +42,4 @@ def filter_census(path_resource: PathResource, load_agebs: dict, load_census: di
             out_dir.mkdir(exist_ok=True, parents=True)
 
             group_df = group_df.drop(columns=["METROPOLI"])
-            group_df.to_file(out_dir / f"{year}.gpkg")
+            group_df.to_file(out_dir / f"{year}.geojson")

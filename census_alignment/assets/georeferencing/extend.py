@@ -37,36 +37,36 @@ def extend_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
     
 
-@asset(deps=["filter_census"])
+@asset(deps=["clean_census"])
 def extend_census_2000(path_resource: PathResource) -> dict:
-    filtered_path = Path(path_resource.out_path) / "census_filtered"
+    fixed_path = Path(path_resource.out_path) / "census_fixed"
     out_dict = {}
-    for path in filtered_path.glob("*"):
+    for path in fixed_path.glob("*"):
         if not path.is_dir():
             continue
 
         city = path.stem.casefold()
         out_dict[city] = [
-            extend_gdf(gpd.read_file(path / "2000.gpkg", engine="pyogrio")),
-            extend_gdf(gpd.read_file(path / "2010.gpkg", engine="pyogrio"))
+            extend_gdf(gpd.read_file(path / "2000.geojson", engine="pyogrio")),
+            extend_gdf(gpd.read_file(path / "2010.geojson", engine="pyogrio"))
         ]
                     
     return out_dict
     
 
-@asset(deps=["filter_census"])
+@asset(deps=["clean_census"])
 def extend_census_1990(context: AssetExecutionContext, path_resource: PathResource) -> dict:
-    filtered_path = Path(path_resource.out_path) / "census_filtered"
+    fixed_path = Path(path_resource.out_path) / "census_fixed"
     georeferenced_path = Path(path_resource.out_path) / "georeferenced_2000"
     
     out_dict = {}
-    for path in filtered_path.glob("*"):
+    for path in fixed_path.glob("*"):
         if not path.is_dir():
             continue
         
         city = path.stem.casefold()
-        source_path = filtered_path / f"{city}/1990.gpkg"
-        target_path = georeferenced_path / f"{city}.gpkg"
+        source_path = fixed_path / f"{city}/1990.geojson"
+        target_path = georeferenced_path / f"{city}.geojson"
 
         if not target_path.exists():
             context.log.warning(f"Georeferenced data for {city} not found. Skipping.")

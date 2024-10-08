@@ -79,7 +79,7 @@ def process_df_pair(df_source: gpd.GeoDataFrame, df_target: gpd.GeoDataFrame) ->
 def initial_gcp_factory(year: int) -> AssetsDefinition:
     @asset(name=f"generate_initial_gcp_{year}", ins={"census_extended": AssetIn(key=[f"extend_census_{year}"])})
     def _asset(path_resource: PathResource, census_extended: dict) -> None:
-        out_path = Path(path_resource.out_path) / f"gcp_{year}_initial"
+        out_path = Path(path_resource.out_path) / f"gcp/{year}/initial"
         out_path.mkdir(exist_ok=True, parents=True)
 
         for city, elem in census_extended.items():

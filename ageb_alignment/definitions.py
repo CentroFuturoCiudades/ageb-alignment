@@ -1,5 +1,5 @@
 from ageb_alignment.assets import filter, georeferencing, mapshaper
-from ageb_alignment.assets.loading import agebs, census, metropoli
+from ageb_alignment.assets.loading import agebs, census, met_zones, metropoli
 
 from ageb_alignment.resources import PathResource
 from dagster import (
@@ -15,6 +15,9 @@ loading_census_assets = load_assets_from_modules([census], group_name="loading_c
 loading_metropoli_assets = load_assets_from_modules(
     [metropoli], group_name="loading_metropoli"
 )
+loading_met_zones = load_assets_from_modules(
+    [met_zones], group_name="loading_met_zones"
+)
 
 filtering_assets = load_assets_from_modules([filter], group_name="filtering")
 
@@ -28,6 +31,7 @@ defs = Definitions(
     assets=loading_agebs_assets
     + loading_census_assets
     + loading_metropoli_assets
+    + loading_met_zones
     + filtering_assets
     + georeferencing_assets
     + mapshaper_assets,

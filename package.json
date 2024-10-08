@@ -1,5 +1,5 @@
 {
-  "name": "census-workflow",
+  "name": "ageb-alignment",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RodolfoFigueroa/census-alignment.git"
+    "url": "git+https://github.com/CentroFuturoCiudades/ageb-alignment.git"
   },
   "author": "",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/RodolfoFigueroa/census-alignment/issues"
+    "url": "https://github.com/CentroFuturoCiudades/ageb-alignment/issues"
   },
-  "homepage": "https://github.com/RodolfoFigueroa/census-alignment#readme",
+  "homepage": "https://github.com/CentroFuturoCiudades/ageb-alignment#readme",
   "dependencies": {
     "mapshaper": "^0.6.100"
   }

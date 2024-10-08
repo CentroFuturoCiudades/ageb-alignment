@@ -4,7 +4,7 @@ import geopandas as gpd
 import networkx as nx
 import pandas as pd
 
-from census_alignment.resources import PathResource
+from ageb_alignment.resources import PathResource
 from dagster import asset, AssetsDefinition, AssetIn
 from pathlib import Path
 

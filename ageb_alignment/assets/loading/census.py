@@ -1,6 +1,6 @@
 import pandas as pd
 
-from census_alignment.resources import PathResource
+from ageb_alignment.resources import PathResource
 from dagster import asset
 from pathlib import Path
 

@@ -1,7 +1,7 @@
-from census_alignment.assets import filter, georeferencing, mapshaper
-from census_alignment.assets.loading import agebs, census, metropoli
+from ageb_alignment.assets import filter, georeferencing, mapshaper
+from ageb_alignment.assets.loading import agebs, census, metropoli
 
-from census_alignment.resources import PathResource
+from ageb_alignment.resources import PathResource
 from dagster import load_assets_from_modules, load_assets_from_package_module, Definitions, EnvVar
 
 

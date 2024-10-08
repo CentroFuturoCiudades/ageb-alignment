@@ -3,7 +3,7 @@ import shapely
 import geopandas as gpd
 import pandas as pd
 
-from census_alignment.resources import PathResource
+from ageb_alignment.resources import PathResource
 from dagster import asset, AssetExecutionContext
 from pathlib import Path
 

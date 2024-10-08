@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "census-alignment"
+name = "ageb-alignment"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
@@ -18,5 +18,5 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.dagster]
-module_name = "census_alignment.definitions"
-code_location_name = "census_alignment"
+module_name = "ageb_alignment.definitions"
+code_location_name = "ageb_alignment"

@@ -9,7 +9,9 @@ from pathlib import Path
 YEARS = (1990, 2000, 2010, 2020)
 
 
-def filter_by_metropoli(df: gpd.GeoDataFrame, metropoli: pd.DataFrame) -> gpd.GeoDataFrame:
+def filter_by_metropoli(
+    df: gpd.GeoDataFrame, metropoli: pd.DataFrame
+) -> gpd.GeoDataFrame:
     df = df.copy()
     df["stub"] = df["CVEGEO"].str[:5]
     df = df.merge(metropoli, how="inner", on="stub")
@@ -28,7 +30,12 @@ def filter_and_merge(agebs: dict, census: dict, metropoli: pd.DataFrame) -> dict
 
 
 @asset
-def filter_census(path_resource: PathResource, load_agebs: dict, load_census: dict, load_metropoli: pd.DataFrame) -> None:
+def filter_census(
+    path_resource: PathResource,
+    load_agebs: dict,
+    load_census: dict,
+    load_metropoli: pd.DataFrame,
+) -> None:
     out_path = Path(path_resource.out_path) / "census_filtered"
     out_path.mkdir(exist_ok=True, parents=True)
 
@@ -37,7 +44,7 @@ def filter_census(path_resource: PathResource, load_agebs: dict, load_census: di
         for name, group_df in df.groupby("METROPOLI"):
             if name == "playa del carmen":
                 continue
-            
+
             out_dir = out_path / name
             out_dir.mkdir(exist_ok=True, parents=True)
 

@@ -26,7 +26,7 @@ def load_census_1990(path_resource: PathResource) -> pd.DataFrame:
         df = df[["0"]]
         df.columns = ["POP"]
         df_all.append(df)
-    
+
     df_all = pd.concat(df_all)
     df_all = df_all.reset_index()
     return df_all
@@ -43,7 +43,7 @@ def load_census_2000(path_resource: PathResource) -> pd.DataFrame:
         df = df[["Z1"]]
         df.columns = ["POP"]
         df_all.append(df)
-    
+
     df_all = pd.concat(df_all)
     df_all = df_all.reset_index()
     return df_all
@@ -58,10 +58,15 @@ def _load_census_2010_2020(dir_path: Path) -> pd.DataFrame:
 
     df = df[df["nom_loc"] == "Total AGEB urbana"]
     df = df.reset_index(drop=True)
-    
+
     for col in ["entidad", "mun", "loc", "ageb"]:
         df[col] = df[col].astype(str)
-    df["CVEGEO"] = df["entidad"].str.rjust(2, "0") + df["mun"].str.rjust(3, "0") + df["loc"].str.rjust(4, "0") + df["ageb"].str.rjust(4, "0")
+    df["CVEGEO"] = (
+        df["entidad"].str.rjust(2, "0")
+        + df["mun"].str.rjust(3, "0")
+        + df["loc"].str.rjust(4, "0")
+        + df["ageb"].str.rjust(4, "0")
+    )
     df = df[["CVEGEO", "pobtot"]]
     df = df.rename(columns={"pobtot": "POP"})
     return df
@@ -80,10 +85,15 @@ def load_census_2020(path_resource: PathResource) -> pd.DataFrame:
 
 
 @asset
-def load_census(load_census_1990: pd.DataFrame, load_census_2000: pd.DataFrame, load_census_2010: pd.DataFrame, load_census_2020: pd.DataFrame) -> dict:
+def load_census(
+    load_census_1990: pd.DataFrame,
+    load_census_2000: pd.DataFrame,
+    load_census_2010: pd.DataFrame,
+    load_census_2020: pd.DataFrame,
+) -> dict:
     return {
         1990: load_census_1990,
         2000: load_census_2000,
         2010: load_census_2010,
-        2020: load_census_2020
+        2020: load_census_2020,
     }

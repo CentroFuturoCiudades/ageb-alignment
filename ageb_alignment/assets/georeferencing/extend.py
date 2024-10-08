@@ -25,7 +25,9 @@ def get_outer_polygon(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
                 max_area = area
                 max_poly = poly
 
-    series = gpd.GeoDataFrame(["OUT"], columns=["CVEGEO"], geometry=[max_poly], crs=gdf.crs)
+    series = gpd.GeoDataFrame(
+        ["OUT"], columns=["CVEGEO"], geometry=[max_poly], crs=gdf.crs
+    )
     return series
 
 
@@ -35,7 +37,7 @@ def extend_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     outer_poly = get_outer_polygon(gdf)
     gdf = pd.concat([gdf, outer_poly], ignore_index=True)
     return gdf
-    
+
 
 @asset(deps=["clean_census"])
 def extend_census_2000(path_resource: PathResource) -> dict:
@@ -48,22 +50,24 @@ def extend_census_2000(path_resource: PathResource) -> dict:
         city = path.stem.casefold()
         out_dict[city] = [
             extend_gdf(gpd.read_file(path / "2000.geojson", engine="pyogrio")),
-            extend_gdf(gpd.read_file(path / "2010.geojson", engine="pyogrio"))
+            extend_gdf(gpd.read_file(path / "2010.geojson", engine="pyogrio")),
         ]
-                    
+
     return out_dict
-    
+
 
 @asset(deps=["clean_census"])
-def extend_census_1990(context: AssetExecutionContext, path_resource: PathResource) -> dict:
+def extend_census_1990(
+    context: AssetExecutionContext, path_resource: PathResource
+) -> dict:
     fixed_path = Path(path_resource.out_path) / "census_fixed"
     georeferenced_path = Path(path_resource.out_path) / "georeferenced_2000"
-    
+
     out_dict = {}
     for path in fixed_path.glob("*"):
         if not path.is_dir():
             continue
-        
+
         city = path.stem.casefold()
         source_path = fixed_path / f"{city}/1990.geojson"
         target_path = georeferenced_path / f"{city}.geojson"
@@ -74,7 +78,7 @@ def extend_census_1990(context: AssetExecutionContext, path_resource: PathResour
 
         out_dict[city] = [
             extend_gdf(gpd.read_file(source_path, engine="pyogrio")),
-            extend_gdf(gpd.read_file(target_path, engine="pyogrio"))
+            extend_gdf(gpd.read_file(target_path, engine="pyogrio")),
         ]
 
     return out_dict

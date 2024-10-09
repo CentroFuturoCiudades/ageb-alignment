@@ -11,7 +11,7 @@ from ageb_alignment.assets import (
     zones,
 )
 
-from ageb_alignment.resources import AgebEnumResource, PathResource
+from ageb_alignment.resources import AgebDictResource, AgebListResource, PathResource
 from dagster import (
     load_assets_from_modules,
     load_assets_from_package_module,
@@ -50,7 +50,12 @@ with open("./config.toml", "r") as f:
 overlap_list = {}
 for year, agebs in config["overlaps"].items():
     overlap_list[f"ageb_{year}"] = agebs
-overlap_resource = AgebEnumResource(**overlap_list)
+overlap_resource = AgebListResource(**overlap_list)
+
+remove_from_mun_list = {}
+for year, agebs in config["remove_from_mun"].items():
+    remove_from_mun_list[f"ageb_{year}"] = agebs
+remove_from_mun_resource = AgebDictResource(**remove_from_mun_list)
 
 # Definition
 defs = Definitions(
@@ -61,5 +66,9 @@ defs = Definitions(
     + state_assets
     + metropoli_assets
     + zones_assets,
-    resources={"path_resource": path_resource, "overlap_resource": overlap_resource},
+    resources={
+        "path_resource": path_resource,
+        "overlap_resource": overlap_resource,
+        "remove_from_mun_resource": remove_from_mun_resource,
+    },
 )

@@ -1,7 +1,7 @@
 import geopandas as gpd
 
 from ageb_alignment.assets.geometry.common import fix_overlapped
-from ageb_alignment.resources import AgebEnumResource, PathResource
+from ageb_alignment.resources import AgebListResource, PathResource
 from ageb_alignment.types import GeometryTuple
 from dagster import asset
 from pathlib import Path
@@ -38,7 +38,7 @@ def _load_agebs(agebs_path: Path) -> GeometryTuple:
 
 @asset
 def geometry_2000(
-    path_resource: PathResource, overlap_resource: AgebEnumResource
+    path_resource: PathResource, overlap_resource: AgebListResource
 ) -> GeometryTuple:
     in_path = Path(path_resource.raw_path) / "geometry/2000"
 

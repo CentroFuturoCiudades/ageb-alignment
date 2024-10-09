@@ -1,5 +1,5 @@
 from dagster import ConfigurableResource
-from typing import Optional
+from typing import Optional, Union
 
 
 class PathResource(ConfigurableResource):
@@ -7,8 +7,15 @@ class PathResource(ConfigurableResource):
     out_path: str
 
 
-class AgebEnumResource(ConfigurableResource):
-    ageb_1990: Optional[list] = None
-    ageb_2000: Optional[list] = None
-    ageb_2010: Optional[list] = None
-    ageb_2020: Optional[list] = None
+class AgebListResource(ConfigurableResource):
+    ageb_1990: Optional[list[list[str]]] = None
+    ageb_2000: Optional[list[list[str]]] = None
+    ageb_2010: Optional[list[list[str]]] = None
+    ageb_2020: Optional[list[list[str]]] = None
+
+
+class AgebDictResource(ConfigurableResource):
+    ageb_1990: Optional[dict[str, list]] = None
+    ageb_2000: Optional[dict[str, list]] = None
+    ageb_2010: Optional[dict[str, list]] = None
+    ageb_2020: Optional[dict[str, list]] = None

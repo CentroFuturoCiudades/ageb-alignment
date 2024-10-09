@@ -3,7 +3,7 @@ import pandas as pd
 
 from ageb_alignment.assets.geometry.common import fix_overlapped
 from ageb_alignment.types import GeometryTuple
-from ageb_alignment.resources import AgebEnumResource, PathResource
+from ageb_alignment.resources import AgebListResource, PathResource
 from dagster import asset
 from pathlib import Path
 
@@ -149,7 +149,7 @@ def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame)
 @asset
 def geometry_1990(
     path_resource: PathResource,
-    overlap_resource: AgebEnumResource,
+    overlap_resource: AgebListResource,
     geometry_2000: GeometryTuple,
 ) -> GeometryTuple:
     agebs_path = Path(path_resource.raw_path) / "geometry/1990/AGEB_s_90_aj.shp"

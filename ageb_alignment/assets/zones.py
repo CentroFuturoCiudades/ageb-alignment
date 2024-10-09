@@ -1,35 +1,17 @@
 import geopandas as gpd
 
-from ageb_alignment.resources import PathResource
-from collections import defaultdict
+from ageb_alignment.resources import AgebDictResource, PathResource
 from dagster import asset
 from pathlib import Path
 
 
-remove_from_mun = {
-    1990: {
-        "01.1.01": ["0100103081640"],
-        "02.2.02": ["intersect", "0200101246152", "020010124724A", "0200101247254"],
-        "23.1.01": ["2300500010667"],
-        "23.2.02": ["intersect"],
-        "26.1.01": ["intersect"],
-    },
-    2000: {
-        "02.2.02": ["intersect"],
-        "23.1.01": ["intersect"],
-        "23.2.02": ["intersect", "2300400111653"],
-    },
-    2010: {
-        "02.2.02": ["intersect"],
-        "23.1.01": ["intersect"],
-        "23.2.02": ["intersect"],
-    },
-}
-
-
 def zone_agebs_factory(year: int):
     @asset(deps=[f"agebs_{year}"], name=f"zone_agebs_{year}")
-    def _asset(path_resource: PathResource, municipality_list: dict):
+    def _asset(
+        path_resource: PathResource,
+        remove_from_mun_resource: AgebDictResource,
+        municipality_list: dict,
+    ):
         out_path = Path(path_resource.out_path) / f"zone_agebs/{year}"
         out_path.mkdir(exist_ok=True, parents=True)
 

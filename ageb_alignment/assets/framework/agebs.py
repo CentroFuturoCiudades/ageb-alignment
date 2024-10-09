@@ -51,12 +51,11 @@ def agebs_2010(
             ]
         )
         .assign(
-            CVE_ENT=lambda df: df.CVEGEO.str[0:2].astype(int),
-            CVE_MUN=lambda df: df.CVEGEO.str[2:5].astype(int),
-            CVE_LOC=lambda df: df.CVEGEO.str[5:9].astype(int),
-            CVE_AGEB=lambda df: df.CVEGEO.str[9:],
+            CVE_ENT=lambda df: df.index.str[0:2].astype(int),
+            CVE_MUN=lambda df: df.index.str[2:5].astype(int),
+            CVE_LOC=lambda df: df.index.str[5:9].astype(int),
+            CVE_AGEB=lambda df: df.index.str[9:],
         )
-        .set_index("CVEGEO")
         .sort_index()
         .join(census_2010.ageb, how="left")
         .assign(POBTOT=lambda df: df.POBTOT.fillna(0).astype(int))
@@ -78,7 +77,6 @@ def agebs_2020(
             CVE_MUN=lambda df: df.CVE_MUN.astype(int),
             CVE_LOC=lambda df: df.CVE_LOC.astype(int),
         )
-        .set_index("CVEGEO")
         .sort_index()
         .join(census_2020.ageb, how="left")
     )

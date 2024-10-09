@@ -1,3 +1,5 @@
+import toml
+
 from ageb_alignment.assets import (
     census,
     framework,
@@ -9,7 +11,7 @@ from ageb_alignment.assets import (
     zones,
 )
 
-from ageb_alignment.resources import PathResource
+from ageb_alignment.resources import AgebEnumResource, PathResource
 from dagster import (
     load_assets_from_modules,
     load_assets_from_package_module,
@@ -18,6 +20,7 @@ from dagster import (
 )
 
 
+# Assets
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
 met_zones_assets = load_assets_from_modules([met_zones], group_name="met_zones")
 mapshaper_assets = load_assets_from_modules([mapshaper], group_name="mapshaper")
@@ -38,6 +41,18 @@ state_assets = load_assets_from_modules([framework.states], group_name="states")
 
 zones_assets = load_assets_from_modules([zones], group_name="zones")
 
+# Resources
+path_resource = PathResource(raw_path=EnvVar("RAW_PATH"), out_path=EnvVar("OUT_PATH"))
+
+with open("./config.toml", "r") as f:
+    config = toml.load(f)
+
+overlap_list = {}
+for year, agebs in config["overlaps"].items():
+    overlap_list[f"ageb_{year}"] = agebs
+overlap_resource = AgebEnumResource(**overlap_list)
+
+# Definition
 defs = Definitions(
     assets=geometry_assets
     + census_assets
@@ -47,8 +62,7 @@ defs = Definitions(
     + metropoli_assets
     + zones_assets,
     resources={
-        "path_resource": PathResource(
-            raw_path=EnvVar("RAW_PATH"), out_path=EnvVar("OUT_PATH")
-        )
+        "path_resource": path_resource,
+        "overlap_resource": overlap_resource
     },
 )

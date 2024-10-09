@@ -1,9 +1,9 @@
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 
+from ageb_alignment.assets.geometry.common import fix_overlapped
 from ageb_alignment.types import GeometryTuple
-from ageb_alignment.resources import PathResource
+from ageb_alignment.resources import AgebEnumResource, PathResource
 from dagster import asset
 from pathlib import Path
 
@@ -133,68 +133,6 @@ def fix_multipoly(gdf):
     return gdf
 
 
-def fix_overlapped(gdf, cover_list=None):
-    """Fix geometries covering whole other geometries by removing the overlapping part."""
-    gdf = gdf.copy()
-
-    if cover_list is None:
-        cover_list = np.array(
-            [
-                ["0702200010033", "0702200010048"],
-                ["0707200010054", "0707200010069"],
-                ["0805000010579", "0805000010511"],
-                ["0901100010715", "090110001072A"],
-                ["0901100010734", "0901100010749"],
-                ["0901300010809", "0901300010813"],
-                ["1103700010206", "1103700010070"],
-                ["120350007055A", "120350007048A"],
-                ["1207100010113", "1207100010081"],
-                ["1406600010076", "1406600010112"],
-                ["1409800010370", "1409800010440"],
-                ["1412000010617", "1412000012064"],
-                ["1412000011352", "1412000011348"],
-                ["1412000011386", "1412000011390"],
-                ["1700200010049", "170020001002A"],
-                ["1801600010068", "1801600010335"],
-                ["1801600010068", "1801600010320"],
-                ["1801600010068", "1801600010316"],
-                ["2018000010038", "2018000010023"],
-                ["2019800010140", "2019800010013"],
-                ["2108500010349", "2108500010230"],
-                ["2110900010060", "2110900010018"],
-                ["2500100010455", "2500100010440"],
-                ["2800301220858", "2800301220260"],
-                ["2802200010637", "280220001132A"],
-                ["3004000010115", "3004000010100"],
-                ["3008300540199", "3008300540131"],
-                ["3008300540199", "3008300540127"],
-                ["301240159030A", "3012401590314"],
-            ]
-        )
-
-    for i in range(len(cover_list)):
-        new_geoms = (
-            gdf.loc[cover_list[i : i + 1, 0]]
-            .geometry.difference(
-                gdf.loc[cover_list[i : i + 1, 1]].geometry, align=False
-            )
-            .explode()
-            .to_frame()
-            .assign(AREA=lambda df: df.area)
-            .sort_values("AREA", ascending=False)
-            .groupby("CVEGEO")
-            .first()
-            .rename(columns={0: "geometry"})
-            .set_geometry("geometry")
-        )
-
-        gdf.loc[cover_list[i : i + 1, 0], "geometry"] = new_geoms.loc[
-            cover_list[i : i + 1, 0], "geometry"
-        ]
-
-    return gdf
-
-
 def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame):
     replace_list = [
         # Tijuana
@@ -205,13 +143,12 @@ def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame)
 
     fixed_agebs = agebs_1990.copy()
     fixed_agebs.loc[replace_list, "geometry"] = agebs_2000.loc[replace_list, "geometry"]
-    fixed_agebs = fix_overlapped(fixed_agebs)
     return fixed_agebs
 
 
 @asset
 def geometry_1990(
-    path_resource: PathResource, geometry_2000: GeometryTuple
+    path_resource: PathResource, overlap_resource: AgebEnumResource, geometry_2000: GeometryTuple
 ) -> GeometryTuple:
     agebs_path = Path(path_resource.raw_path) / "geometry/1990/AGEB_s_90_aj.shp"
     mg_1990_au = (
@@ -234,5 +171,8 @@ def geometry_1990(
 
     # Substitute AGEBs
     mg_1990_au = substitute_agebs(mg_1990_au, geometry_2000.ageb)
+
+    if overlap_resource.ageb_1990 is not None:
+        mg_1990_au = fix_overlapped(mg_1990_au, overlap_resource.ageb_1990)
 
     return GeometryTuple(ageb=mg_1990_au)

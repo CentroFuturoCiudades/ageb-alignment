@@ -37,7 +37,9 @@ def _load_agebs(agebs_path: Path) -> GeometryTuple:
 
 
 @asset
-def geometry_2000(path_resource: PathResource, overlap_resource: AgebEnumResource) -> GeometryTuple:
+def geometry_2000(
+    path_resource: PathResource, overlap_resource: AgebEnumResource
+) -> GeometryTuple:
     in_path = Path(path_resource.raw_path) / "geometry/2000"
 
     agebs = _load_agebs(in_path / "mgau2000/agebs_urb_2000.dbf")

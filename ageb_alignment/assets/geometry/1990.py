@@ -148,7 +148,9 @@ def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame)
 
 @asset
 def geometry_1990(
-    path_resource: PathResource, overlap_resource: AgebEnumResource, geometry_2000: GeometryTuple
+    path_resource: PathResource,
+    overlap_resource: AgebEnumResource,
+    geometry_2000: GeometryTuple,
 ) -> GeometryTuple:
     agebs_path = Path(path_resource.raw_path) / "geometry/1990/AGEB_s_90_aj.shp"
     mg_1990_au = (

@@ -8,11 +8,14 @@ from pathlib import Path
 
 
 @asset
-def geometry_2020(path_resource: PathResource, overlap_resource: AgebEnumResource) -> GeometryTuple:
+def geometry_2020(
+    path_resource: PathResource, overlap_resource: AgebEnumResource
+) -> GeometryTuple:
     in_path = Path(path_resource.raw_path) / "geometry/2020"
 
     agebs = (
-        gpd.read_file(in_path / "00a.shp", engine="pyogrio").to_crs("EPSG:6372")
+        gpd.read_file(in_path / "00a.shp", engine="pyogrio")
+        .to_crs("EPSG:6372")
         .query("Ambito == 'Urbana'")
         .set_index("CVEGEO")
     )

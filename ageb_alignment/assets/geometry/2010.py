@@ -8,7 +8,9 @@ from pathlib import Path
 
 
 @asset
-def geometry_2010(path_resource: PathResource, overlap_resource: AgebEnumResource) -> GeometryTuple:
+def geometry_2010(
+    path_resource: PathResource, overlap_resource: AgebEnumResource
+) -> GeometryTuple:
     in_path = Path(path_resource.raw_path) / "geometry/2010/"
 
     agebs = (
@@ -26,5 +28,5 @@ def geometry_2010(path_resource: PathResource, overlap_resource: AgebEnumResourc
         mun=gpd.read_file(in_path / "mgm2010v5_0/Municipios_2010_5.shp").to_crs(
             "EPSG:6372"
         ),
-        ageb=agebs
+        ageb=agebs,
     )

@@ -61,8 +61,5 @@ defs = Definitions(
     + state_assets
     + metropoli_assets
     + zones_assets,
-    resources={
-        "path_resource": path_resource,
-        "overlap_resource": overlap_resource
-    },
+    resources={"path_resource": path_resource, "overlap_resource": overlap_resource},
 )

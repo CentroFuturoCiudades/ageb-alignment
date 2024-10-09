@@ -10,8 +10,7 @@ def fix_overlapped(gdf: gpd.GeoDataFrame, cover_list: list) -> gpd.GeoDataFrame:
     for i in range(len(cover_list)):
         new_geoms = (
             gdf.loc[cover_list[i : i + 1, 0]]
-            .geometry
-            .difference(
+            .geometry.difference(
                 gdf.loc[cover_list[i : i + 1, 1]].geometry, align=False
             )
             .explode()

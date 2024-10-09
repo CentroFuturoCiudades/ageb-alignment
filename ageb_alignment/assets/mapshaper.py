@@ -6,7 +6,7 @@ from dagster import asset
 from pathlib import Path
 
 
-@asset(deps=["filter_census"])
+@asset()
 def clean_census(path_resource: PathResource) -> None:
     out_root_path = Path(path_resource.out_path)
 

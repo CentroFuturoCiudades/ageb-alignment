@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 @asset
-def load_met_zones(path_resource: PathResource) -> pd.DataFrame:
+def met_zones(path_resource: PathResource) -> pd.DataFrame:
     path = Path(path_resource.raw_path) / "metropoli/mpios_en_metropoli.shp"
     df = gpd.read_file(path, engine="pyogrio")
     df = df[df["TIPOMET"].isin(["Zona metropolitana", "Metrópoli municipal"])]

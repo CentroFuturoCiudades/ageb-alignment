@@ -28,7 +28,7 @@ def get_tcma(x0, x1, num_years):
 
 
 @asset
-def load_metropoli_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
+def metropoli_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
     metropoli_path = Path(path_resource.raw_path) / "metropoli/2020"
     metropoli_muns_gdf = (
         gpd.read_file(metropoli_path)
@@ -40,7 +40,7 @@ def load_metropoli_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
 
 
 @asset
-def load_metropoli_table(path_resource: PathResource) -> pd.DataFrame:
+def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
     sheet_path = Path(path_resource.raw_path) / "metropoli/Cuadros_MM2020.xlsx"
 
     sheet_a = (
@@ -154,15 +154,22 @@ def load_metropoli_table(path_resource: PathResource) -> pd.DataFrame:
 
 
 @asset
-def concatenate_tables(
-    load_metropoli_2020: gpd.GeoDataFrame, load_metropoli_table: pd.DataFrame
-) -> gpd.GeoDataFrame:
+def municipality_list(
+    metropoli_2020: gpd.GeoDataFrame, metropoli_table: pd.DataFrame
+) -> dict:
     df = (
-        pd.concat([load_metropoli_2020, load_metropoli_table], axis=1)
+        pd.concat([metropoli_2020, metropoli_table], axis=1)
         .assign(AREA_TOT=lambda x: x.area / 1e6)
         .rename_axis(index={"CVEGEO": "CVE_MUN"})
         .query("TIPO_MET != 'Zona conurbada'")
         .drop("23.2.03")
         .sort_index()
     )
-    return df
+
+    zones_mun_dict = {}
+    for zone, mun in df.index:
+        if zone in zones_mun_dict:
+            zones_mun_dict[zone].append(mun)
+        else:
+            zones_mun_dict[zone] = [mun]
+    return zones_mun_dict

@@ -34,12 +34,12 @@ def filter_census(
     path_resource: PathResource,
     load_agebs: dict,
     load_census: dict,
-    load_met_zones: pd.DataFrame,
+    met_zones: pd.DataFrame,
 ) -> None:
     out_path = Path(path_resource.out_path) / "census_filtered"
     out_path.mkdir(exist_ok=True, parents=True)
 
-    res = filter_and_merge(load_agebs, load_census, load_met_zones)
+    res = filter_and_merge(load_agebs, load_census, met_zones)
     for year, df in res.items():
         for name, group_df in df.groupby("METROPOLI"):
             if name == "playa del carmen":

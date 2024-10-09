@@ -1,5 +1,13 @@
-from ageb_alignment.assets import filter, georeferencing, mapshaper
-from ageb_alignment.assets.loading import agebs, census, met_zones, metropoli
+from ageb_alignment.assets import (
+    census,
+    framework,
+    geometry,
+    georeferencing,
+    mapshaper,
+    metropoli,
+    met_zones,
+    zones,
+)
 
 from ageb_alignment.resources import PathResource
 from dagster import (
@@ -10,31 +18,34 @@ from dagster import (
 )
 
 
-loading_agebs_assets = load_assets_from_modules([agebs], group_name="loading_agebs")
-loading_census_assets = load_assets_from_modules([census], group_name="loading_census")
-loading_metropoli_assets = load_assets_from_modules(
-    [metropoli], group_name="loading_metropoli"
-)
-loading_met_zones = load_assets_from_modules(
-    [met_zones], group_name="loading_met_zones"
-)
-
-filtering_assets = load_assets_from_modules([filter], group_name="filtering")
-
+metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
+met_zones_assets = load_assets_from_modules([met_zones], group_name="met_zones")
 mapshaper_assets = load_assets_from_modules([mapshaper], group_name="mapshaper")
+
+census_assets = load_assets_from_package_module(census, group_name="census")
+
+geometry_assets = load_assets_from_package_module(geometry, group_name="geometry")
 
 georeferencing_assets = load_assets_from_package_module(
     georeferencing, group_name="georeferencing"
 )
 
+ageb_assets = load_assets_from_modules([framework.agebs], group_name="agebs")
+municipality_assets = load_assets_from_modules(
+    [framework.municipalities], group_name="municipalities"
+)
+state_assets = load_assets_from_modules([framework.states], group_name="states")
+
+zones_assets = load_assets_from_modules([zones], group_name="zones")
+
 defs = Definitions(
-    assets=loading_agebs_assets
-    + loading_census_assets
-    + loading_metropoli_assets
-    + loading_met_zones
-    + filtering_assets
-    + georeferencing_assets
-    + mapshaper_assets,
+    assets=geometry_assets
+    + census_assets
+    + ageb_assets
+    + municipality_assets
+    + state_assets
+    + metropoli_assets
+    + zones_assets,
     resources={
         "path_resource": PathResource(
             raw_path=EnvVar("RAW_PATH"), out_path=EnvVar("OUT_PATH")

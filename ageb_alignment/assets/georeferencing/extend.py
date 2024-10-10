@@ -39,7 +39,7 @@ def extend_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
 
 
-@asset(deps=[f"zone_agebs_fixed_2000", "zone_agebs_fixed_2010"])
+@asset(deps=["zone_agebs_fixed_2000", "zone_agebs_fixed_2010"])
 def zones_extended_2000(path_resource: PathResource) -> dict:
     fixed_path = Path(path_resource.out_path) / "zone_agebs_fixed"
 

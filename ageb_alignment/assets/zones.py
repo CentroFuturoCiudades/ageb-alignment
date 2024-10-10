@@ -35,7 +35,7 @@ def _remove_not_in_mun(gdf: gpd.GeoDataFrame, mun_gdf: gpd.GeoDataFrame):
     return gdf[keep]
 
 
-@asset
+@asset(deps=["agebs_2020"])
 def zone_agebs_2020(path_resource: PathResource, municipality_list: dict) -> None:
     root_out_path = Path(path_resource.out_path)
     df, out_path = _load_agebs_and_prep_paths(root_out_path, 2020)

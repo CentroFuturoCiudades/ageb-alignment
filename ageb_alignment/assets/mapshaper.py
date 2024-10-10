@@ -24,17 +24,24 @@ def zone_agebs_clean_factory(year: int) -> asset:
             out_path_json = out_dir / f"{zone}.geojson"
             out_path_gpkg = out_dir / f"{zone}.gpkg"
 
+            if os.name == "nt":
+                shell = True
+                quote = '"'
+            else:
+                shell = False
+                quote = ""
+
             subprocess.check_call(
                 [
                     "npx",
                     "mapshaper",
                     "-i",
-                    f'"{path}"',
+                    f"{quote}{path}{quote}",
                     "-clean",
                     "-o",
-                    f'"{out_path_json}"',
+                    f"{quote}{out_path_json}{quote}",
                 ],
-                shell=True,
+                shell=shell,
             )
 
             df = gpd.read_file(out_path_json)

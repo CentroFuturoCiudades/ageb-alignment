@@ -1,51 +1,51 @@
-import json
+import os
 import subprocess
+
+import geopandas as gpd
 
 from ageb_alignment.resources import PathResource
 from dagster import asset
 from pathlib import Path
 
 
-@asset()
-def clean_census(path_resource: PathResource) -> None:
-    out_root_path = Path(path_resource.out_path)
+def zone_agebs_clean_factory(year: int) -> asset:
+    @asset(name=f"zone_agebs_fixed_{year}", deps=[f"zone_agebs_{year}"])
+    def _asset(path_resource: PathResource) -> None:
+        out_root_path = Path(path_resource.out_path)
 
-    filtered_path = out_root_path / "census_filtered"
+        zone_agebs_path = out_root_path / f"zone_agebs/{year}"
 
-    out_dir = out_root_path / "census_fixed"
-    out_dir.mkdir(exist_ok=True, parents=True)
+        out_dir = out_root_path / f"zone_agebs_fixed/{year}"
+        out_dir.mkdir(exist_ok=True, parents=True)
 
-    for dir_path in filtered_path.glob("*"):
-        if not dir_path.is_dir():
-            continue
+        for path in zone_agebs_path.glob("*.geojson"):
+            zone = path.stem
 
-        out_subdir_path = out_dir / f"{dir_path.stem}"
-        out_subdir_path.mkdir(exist_ok=True, parents=True)
+            out_path_json = out_dir / f"{zone}.geojson"
+            out_path_gpkg = out_dir / f"{zone}.gpkg"
 
-        for year in (1990, 2000, 2010, 2020):
-            in_path = dir_path / f"{year}.geojson"
-            out_path = out_subdir_path / f"{year}.geojson"
             subprocess.check_call(
                 [
                     "npx",
                     "mapshaper",
                     "-i",
-                    f'"{in_path}"',
+                    f'"{path}"',
                     "-clean",
                     "-o",
-                    f'"{out_path}"',
+                    f'"{out_path_json}"',
                 ],
                 shell=True,
             )
 
-            with open(out_path, "r") as f:
-                geom = json.load(f)
+            df = gpd.read_file(out_path_json)
+            df = df.to_crs("EPSG:6372")
+            df.to_file(out_path_gpkg)
 
-            geom["name"] = str(year)
-            geom["crs"] = {
-                "type": "name",
-                "properties": {"name": "urn:ogc:def:crs:EPSG::6372"},
-            }
+            os.remove(out_path_json)
 
-            with open(out_path, "w") as f:
-                json.dump(geom, f)
+    return _asset
+
+
+zone_agebs_clean_assets = [
+    zone_agebs_clean_factory(year) for year in (1990, 2000, 2010, 2020)
+]

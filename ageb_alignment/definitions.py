@@ -60,8 +60,10 @@ remove_from_mun_resource = AgebDictResource(**remove_from_mun_list)
 # Definition
 defs = Definitions(
     assets=geometry_assets
-    + census_assets
     + ageb_assets
+    + census_assets
+    + georeferencing_assets
+    + mapshaper_assets
     + municipality_assets
     + state_assets
     + metropoli_assets

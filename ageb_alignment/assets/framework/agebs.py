@@ -18,7 +18,7 @@ def agebs_1990(
         .explode()
         .dissolve(by="CVEGEO")
     )
-    merged.to_file(out_path / "1990.gpkg", engine="fiona")
+    merged.to_file(out_path / "1990.gpkg")
 
 
 @asset

@@ -80,19 +80,19 @@ def process_df_pair(
 
 def initial_gcp_factory(year: int) -> AssetsDefinition:
     @asset(
-        name=f"generate_initial_gcp_{year}",
-        ins={"census_extended": AssetIn(key=[f"extend_census_{year}"])},
+        name=f"initial_gcp_{year}",
+        ins={"census_extended": AssetIn(key=[f"zones_extended_{year}"])},
     )
     def _asset(path_resource: PathResource, census_extended: dict) -> None:
         out_path = Path(path_resource.out_path) / f"gcp/{year}/initial"
         out_path.mkdir(exist_ok=True, parents=True)
 
-        for city, elem in census_extended.items():
+        for zone, elem in census_extended.items():
             df_source, df_target = elem
             merged = process_df_pair(df_source, df_target)
-            merged.to_csv(out_path / f"{city}.points", index=False)
+            merged.to_csv(out_path / f"{zone}.points", index=False)
 
     return _asset
 
 
-initial_gcp_assets = [initial_gcp_factory(year) for year in (1990, 2000)]
+initial_gcp_assets = [initial_gcp_factory(year) for year in (2000,)]

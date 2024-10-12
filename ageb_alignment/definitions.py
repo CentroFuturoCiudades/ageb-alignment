@@ -12,13 +12,19 @@ from ageb_alignment.assets import (
 )
 
 from ageb_alignment.resources import AgebDictResource, AgebListResource, PathResource
+
 from dagster import (
     load_assets_from_modules,
     load_assets_from_package_module,
     Definitions,
     EnvVar,
+    ExperimentalWarning,
 )
 
+# Suppress experimental warnings
+import warnings
+
+warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 # Assets
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
@@ -44,7 +50,7 @@ zones_assets = load_assets_from_modules([zones], group_name="zones")
 # Resources
 path_resource = PathResource(raw_path=EnvVar("RAW_PATH"), out_path=EnvVar("OUT_PATH"))
 
-with open("./config.toml", "r") as f:
+with open("./config.toml", "r", encoding="utf8") as f:
     config = toml.load(f)
 
 overlap_list = {}

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from ageb_alignment.resources import PathResource
-from dagster import asset
+from dagster import asset, AssetExecutionContext
 from pathlib import Path
 
 
@@ -154,8 +154,10 @@ def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
 
 
 @asset
-def municipality_list(
-    metropoli_2020: gpd.GeoDataFrame, metropoli_table: pd.DataFrame
+def metropoli_list(
+    context: AssetExecutionContext,
+    metropoli_2020: gpd.GeoDataFrame,
+    metropoli_table: pd.DataFrame,
 ) -> dict:
     df = (
         pd.concat([metropoli_2020, metropoli_table], axis=1)
@@ -167,9 +169,14 @@ def municipality_list(
     )
 
     zones_mun_dict = {}
+    unique_zones = set()
     for zone, mun in df.index:
         if zone in zones_mun_dict:
             zones_mun_dict[zone].append(mun)
         else:
             zones_mun_dict[zone] = [mun]
+
+        unique_zones.add(zone)
+
+    context.instance.add_dynamic_partitions("zone", list(unique_zones))
     return zones_mun_dict

@@ -3,6 +3,7 @@ import shapely
 import geopandas as gpd
 import pandas as pd
 
+from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource
 from dagster import asset, AssetExecutionContext
 from pathlib import Path
@@ -39,21 +40,20 @@ def extend_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
 
 
-@asset(deps=["zone_agebs_fixed_2000", "zone_agebs_fixed_2010"])
-def zones_extended_2000(path_resource: PathResource) -> dict:
+@asset(
+    deps=["zone_agebs_fixed_2000", "zone_agebs_fixed_2010"],
+    partitions_def=zone_partitions,
+)
+def zones_extended_2000(
+    context: AssetExecutionContext, path_resource: PathResource
+) -> tuple:
+    zone = context.partition_key
+
     fixed_path = Path(path_resource.out_path) / "zone_agebs_fixed"
+    df_source = (extend_gdf(gpd.read_file(fixed_path / f"2000/{zone}.gpkg")),)
+    df_target = (extend_gdf(gpd.read_file(fixed_path / f"2010/{zone}.gpkg")),)
 
-    out_dict = {}
-    temp_path = fixed_path / "1990"
-    for path in temp_path.glob("*.gpkg"):
-        zone = path.stem.casefold()
-
-        out_dict[zone] = [
-            extend_gdf(gpd.read_file(fixed_path / f"2000/{zone}.gpkg")),
-            extend_gdf(gpd.read_file(fixed_path / f"2010/{zone}.gpkg")),
-        ]
-
-    return out_dict
+    return df_source, df_target
 
 
 # @asset(deps=["clean_census"])

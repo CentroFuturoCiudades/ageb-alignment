@@ -1,9 +1,16 @@
 import geopandas as gpd
 import numpy as np
 
+from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import AgebDictResource, PathResource
-from dagster import asset
+from dagster import asset, AssetExecutionContext, BackfillPolicy, ExperimentalWarning
 from pathlib import Path
+
+
+# Suppress experimental warnings
+import warnings
+
+warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 
 def _load_agebs_and_prep_paths(root_out_path: Path, year: int) -> gpd.GeoDataFrame:
@@ -35,23 +42,36 @@ def _remove_not_in_mun(gdf: gpd.GeoDataFrame, mun_gdf: gpd.GeoDataFrame):
     return gdf[keep]
 
 
-@asset(deps=["agebs_2020"])
-def zone_agebs_2020(path_resource: PathResource, municipality_list: dict) -> None:
+@asset(
+    deps=["agebs_2020"],
+    partitions_def=zone_partitions,
+    backfill_policy=BackfillPolicy.single_run(),
+)
+def zone_agebs_2020(
+    context: AssetExecutionContext, path_resource: PathResource, metropoli_list: dict
+) -> None:
     root_out_path = Path(path_resource.out_path)
     df, out_path = _load_agebs_and_prep_paths(root_out_path, 2020)
 
-    for zone, mun_list in municipality_list.items():
+    for zone in context.partition_keys:
+        mun_list = metropoli_list[zone]
         zone_agebs = _extract_and_fix_geometry(df, mun_list)
         zone_agebs = zone_agebs.to_crs("EPSG:4326")
         zone_agebs.to_file(out_path / f"{zone}.geojson")
 
 
 def zone_agebs_factory(year: int) -> asset:
-    @asset(deps=[f"agebs_{year}", "municipalities_2020"], name=f"zone_agebs_{year}")
+    @asset(
+        deps=[f"agebs_{year}", "municipalities_2020"],
+        name=f"zone_agebs_{year}",
+        partitions_def=zone_partitions,
+        backfill_policy=BackfillPolicy.single_run(),
+    )
     def _asset(
+        context: AssetExecutionContext,
         path_resource: PathResource,
         remove_from_mun_resource: AgebDictResource,
-        municipality_list: dict,
+        metropoli_list: dict,
     ) -> None:
         root_out_path = Path(path_resource.out_path)
         df, out_path = _load_agebs_and_prep_paths(root_out_path, year)
@@ -61,7 +81,8 @@ def zone_agebs_factory(year: int) -> asset:
 
         remove_dict = getattr(remove_from_mun_resource, f"ageb_{year}")
 
-        for zone, mun_list in municipality_list.items():
+        for zone in context.partition_keys:
+            mun_list = metropoli_list[zone]
             zone_agebs = _extract_and_fix_geometry(df, mun_list)
 
             mun_list_trimmed = [int(m) for m in mun_list]

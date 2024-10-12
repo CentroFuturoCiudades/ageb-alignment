@@ -4,8 +4,9 @@ import geopandas as gpd
 import networkx as nx
 import pandas as pd
 
+from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource
-from dagster import asset, AssetsDefinition, AssetIn
+from dagster import asset, AssetsDefinition, AssetExecutionContext, AssetIn
 from pathlib import Path
 
 
@@ -82,15 +83,21 @@ def initial_gcp_factory(year: int) -> AssetsDefinition:
     @asset(
         name=f"initial_gcp_{year}",
         ins={"census_extended": AssetIn(key=[f"zones_extended_{year}"])},
+        partitions_def=zone_partitions,
     )
-    def _asset(path_resource: PathResource, census_extended: dict) -> None:
-        out_path = Path(path_resource.out_path) / f"gcp/{year}/initial"
-        out_path.mkdir(exist_ok=True, parents=True)
+    def _asset(
+        context: AssetExecutionContext,
+        path_resource: PathResource,
+        census_extended: tuple,
+    ) -> None:
+        zone = context.partition_key
+        out_dir = Path(path_resource.out_path) / f"gcp/{year}/initial"
+        out_dir.mkdir(exist_ok=True, parents=True)
 
-        for zone, elem in census_extended.items():
-            df_source, df_target = elem
-            merged = process_df_pair(df_source, df_target)
-            merged.to_csv(out_path / f"{zone}.points", index=False)
+        df_source = census_extended[0][0]
+        df_target = census_extended[1][0]
+        merged = process_df_pair(df_source, df_target)
+        merged.to_csv(out_dir / f"{zone}.points", index=False)
 
     return _asset
 

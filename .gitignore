@@ -297,4 +297,7 @@ dist
 .pnp.*
 
 package-lock.json
-dagster_cache/
+
+# Dagster
+dagster/*
+!dagster/dagster.yaml

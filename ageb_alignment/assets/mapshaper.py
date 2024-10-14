@@ -4,7 +4,7 @@ import subprocess
 import geopandas as gpd
 
 from ageb_alignment.partitions import zone_partitions
-from ageb_alignment.resources import PathResource
+from ageb_alignment.resources import PathResource, PreferenceResource
 from dagster import asset, AssetExecutionContext
 from pathlib import Path
 
@@ -13,7 +13,11 @@ def zone_agebs_clean_factory(year: int) -> asset:
     name = f"zone_agebs_fixed_{year}"
 
     @asset(name=name, deps=[f"zone_agebs_{year}"], partitions_def=zone_partitions)
-    def _asset(context: AssetExecutionContext, path_resource: PathResource) -> None:
+    def _asset(
+        context: AssetExecutionContext,
+        path_resource: PathResource,
+        preference_resource: PreferenceResource,
+    ) -> None:
         zone = context.partition_key
 
         out_root_path = Path(path_resource.out_path)
@@ -47,6 +51,14 @@ def zone_agebs_clean_factory(year: int) -> asset:
         )
 
         df = gpd.read_file(out_path_json)
+        df_orig = gpd.read_file(in_path)
+
+        if len(df) != len(df_orig):
+            if preference_resource.raise_on_deleted_geometries:
+                raise Exception("Geometries were deleted.")
+            else:
+                context.warning(f"Geometries for zone {zone} were deleted.")
+
         df = df.to_crs("EPSG:6372")
         df.to_file(out_path_gpkg)
 

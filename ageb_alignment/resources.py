@@ -1,5 +1,9 @@
 from dagster import ConfigurableResource
-from typing import Optional, Union
+from typing import Optional
+
+
+class PreferenceResource(ConfigurableResource):
+    raise_on_deleted_geometries: bool
 
 
 class PathResource(ConfigurableResource):

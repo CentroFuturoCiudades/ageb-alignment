@@ -11,7 +11,12 @@ from ageb_alignment.assets import (
     zones,
 )
 
-from ageb_alignment.resources import AgebDictResource, AgebListResource, PathResource
+from ageb_alignment.resources import (
+    AgebDictResource,
+    AgebListResource,
+    PathResource,
+    PreferenceResource,
+)
 
 from dagster import (
     load_assets_from_modules,
@@ -63,6 +68,10 @@ for year, agebs in config["remove_from_mun"].items():
     remove_from_mun_list[f"ageb_{year}"] = agebs
 remove_from_mun_resource = AgebDictResource(**remove_from_mun_list)
 
+preference_resource = PreferenceResource(
+    raise_on_deleted_geometries=config["preferences"]["raise_on_deleted_geometries"]
+)
+
 # Definition
 defs = Definitions(
     assets=geometry_assets
@@ -78,5 +87,6 @@ defs = Definitions(
         "path_resource": path_resource,
         "overlap_resource": overlap_resource,
         "remove_from_mun_resource": remove_from_mun_resource,
+        "preference_resource": preference_resource,
     },
 )

@@ -53,6 +53,8 @@ def zone_agebs_clean_factory(year: int) -> asset:
         df = gpd.read_file(out_path_json)
         df_orig = gpd.read_file(in_path)
 
+        os.remove(out_path_json)
+
         if len(df) != len(df_orig):
             if preference_resource.raise_on_deleted_geometries:
                 raise Exception("Geometries were deleted.")
@@ -61,8 +63,6 @@ def zone_agebs_clean_factory(year: int) -> asset:
 
         df = df.to_crs("EPSG:6372")
         df.to_file(out_path_gpkg)
-
-        os.remove(out_path_json)
 
     return _asset
 

@@ -47,7 +47,7 @@ def census_2000_scince(path_resource: PathResource) -> pd.DataFrame:
     return census_a
 
 
-@asset
+@asset(name="2000", key_prefix="census")
 def census_2000(
     census_2000_iter: pd.DataFrame, census_2000_scince: pd.DataFrame
 ) -> CensusTuple:

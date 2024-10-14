@@ -61,7 +61,7 @@ def census_1990_scince(path_resource: PathResource) -> pd.DataFrame:
     return census_a
 
 
-@asset
+@asset(name="1990", key_prefix="census")
 def census_1990(
     census_1990_iter: pd.DataFrame, census_1990_scince: pd.DataFrame
 ) -> CensusTuple:

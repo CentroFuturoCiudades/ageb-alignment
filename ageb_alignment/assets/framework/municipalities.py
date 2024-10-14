@@ -1,6 +1,6 @@
 from ageb_alignment.resources import PathResource
 from ageb_alignment.types import GeometryTuple, CensusTuple
-from dagster import asset
+from dagster import asset, AssetIn
 from pathlib import Path
 
 
@@ -25,7 +25,7 @@ def municipalities_2000(
     merged.to_file(out_path / "2000.gpkg")
 
 
-@asset
+@asset(ins={"census_2010": AssetIn(key=["census", "2010"])})
 def municipalities_2010(
     path_resource: PathResource, geometry_2010: GeometryTuple, census_2010: CensusTuple
 ) -> None:
@@ -46,7 +46,7 @@ def municipalities_2010(
     merged.to_file(out_path / "2010.gpkg")
 
 
-@asset
+@asset(ins={"census_2020": AssetIn(key=["census", "2020"])})
 def municipalities_2020(
     path_resource: PathResource, geometry_2020: GeometryTuple, census_2020: CensusTuple
 ) -> None:

@@ -125,14 +125,14 @@ def _merge_census(
     return CensusTuple(ent=census_e, mun=census_m, loc=census_l, ageb=census_inegi)
 
 
-@asset
+@asset(name="2010", key_prefix="census")
 def census_2010(
     census_2010_iter: pd.DataFrame, census_2010_inegi: pd.DataFrame
 ) -> CensusTuple:
     return _merge_census(census_2010_iter, census_2010_inegi)
 
 
-@asset
+@asset(name="2020", key_prefix="census")
 def census_2020(
     census_2020_iter: pd.DataFrame, census_2020_inegi: pd.DataFrame
 ) -> CensusTuple:

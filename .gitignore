@@ -301,3 +301,5 @@ package-lock.json
 # Dagster
 dagster/*
 !dagster/dagster.yaml
+
+main.ipynb

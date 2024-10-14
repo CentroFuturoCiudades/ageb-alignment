@@ -7,8 +7,13 @@ from ageb_alignment.assets import (
     georeferencing,
     mapshaper,
     metropoli,
-    met_zones,
     zones,
+)
+
+from ageb_alignment.jobs import (
+    generate_framework_job,
+    generate_gcp_2000_job,
+    fix_zones_job,
 )
 
 from ageb_alignment.resources import (
@@ -31,9 +36,9 @@ import warnings
 
 warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
+
 # Assets
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
-met_zones_assets = load_assets_from_modules([met_zones], group_name="met_zones")
 mapshaper_assets = load_assets_from_modules([mapshaper], group_name="mapshaper")
 
 census_assets = load_assets_from_package_module(census, group_name="census")
@@ -51,6 +56,7 @@ municipality_assets = load_assets_from_modules(
 state_assets = load_assets_from_modules([framework.states], group_name="states")
 
 zones_assets = load_assets_from_modules([zones], group_name="zones")
+
 
 # Resources
 path_resource = PathResource(raw_path=EnvVar("RAW_PATH"), out_path=EnvVar("OUT_PATH"))
@@ -72,6 +78,7 @@ preference_resource = PreferenceResource(
     raise_on_deleted_geometries=config["preferences"]["raise_on_deleted_geometries"]
 )
 
+
 # Definition
 defs = Definitions(
     assets=geometry_assets
@@ -89,4 +96,5 @@ defs = Definitions(
         "remove_from_mun_resource": remove_from_mun_resource,
         "preference_resource": preference_resource,
     },
+    jobs=[generate_framework_job, generate_gcp_2000_job, fix_zones_job],
 )

@@ -16,6 +16,8 @@ from ageb_alignment.jobs import (
     fix_zones_job,
 )
 
+from ageb_alignment.managers import FrameworkIOManager
+
 from ageb_alignment.resources import (
     AgebDictResource,
     AgebListResource,
@@ -107,6 +109,11 @@ with open("./configs/replacement/1990_2000.toml", "r", encoding="utf8") as f:
     replacement_list["ageb_1990"] = toml.load(f)
 replacement_resource = AgebNestedDictResource(**replacement_list)
 
+
+# Managers
+framework_manager = FrameworkIOManager(path_resource=path_resource)
+
+
 # Definition
 defs = Definitions(
     assets=geometry_assets
@@ -129,6 +136,7 @@ defs = Definitions(
         "remove_from_mun_resource": remove_from_mun_resource,
         "preference_resource": preference_resource,
         "replacement_resource": replacement_resource,
+        "framework_manager": framework_manager,
     },
     jobs=[generate_framework_job, generate_gcp_2000_job, fix_zones_job],
 )

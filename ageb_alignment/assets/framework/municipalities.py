@@ -1,20 +1,16 @@
-from ageb_alignment.resources import PathResource
+import geopandas as gpd
+
 from ageb_alignment.types import GeometryTuple, CensusTuple
 from dagster import asset, AssetIn
-from pathlib import Path
 
 
 @asset(
     name="2000",
     key_prefix=["framework", "municipalities"],
     ins={"geometry_2000": AssetIn(key=["geometry", "2000"])},
+    io_manager_key="framework_manager",
 )
-def municipalities_2000(
-    path_resource: PathResource, geometry_2000: GeometryTuple
-) -> None:
-    out_path = Path(path_resource.out_path) / "framework/municipalities"
-    out_path.mkdir(exist_ok=True, parents=True)
-
+def municipalities_2000(geometry_2000: GeometryTuple) -> gpd.GeoDataFrame:
     merged = (
         geometry_2000.mun.drop(columns=["OID", "LAYER", "NOM_MUN"])
         .rename(columns={"CVEMUNI": "CVEGEO"})
@@ -26,7 +22,7 @@ def municipalities_2000(
         .set_index("CVEGEO")
         .sort_index()
     )
-    merged.to_file(out_path / "2000.gpkg")
+    return merged
 
 
 @asset(
@@ -36,13 +32,11 @@ def municipalities_2000(
         "census_2010": AssetIn(key=["census", "2010"]),
         "geometry_2010": AssetIn(key=["geometry", "2010"]),
     },
+    io_manager_key="framework_manager",
 )
 def municipalities_2010(
-    path_resource: PathResource, geometry_2010: GeometryTuple, census_2010: CensusTuple
-) -> None:
-    out_path = Path(path_resource.out_path) / "framework/municipalities"
-    out_path.mkdir(exist_ok=True, parents=True)
-
+    geometry_2010: GeometryTuple, census_2010: CensusTuple
+) -> gpd.GeoDataFrame:
     merged = (
         geometry_2010.mun.drop(columns=["OID", "NOM_MUN"])
         .assign(
@@ -54,7 +48,7 @@ def municipalities_2010(
         .sort_index()
         .join(census_2010.mun)
     )
-    merged.to_file(out_path / "2010.gpkg")
+    return merged
 
 
 @asset(
@@ -64,13 +58,11 @@ def municipalities_2010(
         "census_2020": AssetIn(key=["census", "2020"]),
         "geometry_2020": AssetIn(key=["geometry", "2020"]),
     },
+    io_manager_key="framework_manager",
 )
 def municipalities_2020(
-    path_resource: PathResource, geometry_2020: GeometryTuple, census_2020: CensusTuple
-) -> None:
-    out_path = Path(path_resource.out_path) / "framework/municipalities"
-    out_path.mkdir(exist_ok=True, parents=True)
-
+    geometry_2020: GeometryTuple, census_2020: CensusTuple
+) -> gpd.GeoDataFrame:
     merged = (
         geometry_2020.mun.drop(columns="NOMGEO")
         .assign(
@@ -82,4 +74,4 @@ def municipalities_2020(
         .sort_index()
         .join(census_2020.mun)
     )
-    merged.to_file(out_path / "2020.gpkg")
+    return merged

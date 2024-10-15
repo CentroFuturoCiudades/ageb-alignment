@@ -49,7 +49,10 @@ georeferencing_assets = load_assets_from_package_module(
     georeferencing, group_name="georeferencing"
 )
 
-ageb_assets = load_assets_from_modules([framework.agebs], group_name="agebs")
+ageb_assets = load_assets_from_modules(
+    [framework.agebs_initial], group_name="agebs_initial"
+)
+ageb_initial_assets = load_assets_from_modules([framework.agebs], group_name="agebs")
 municipality_assets = load_assets_from_modules(
     [framework.municipalities], group_name="municipalities"
 )
@@ -59,7 +62,11 @@ zones_assets = load_assets_from_modules([zones], group_name="zones")
 
 
 # Resources
-path_resource = PathResource(raw_path=EnvVar("RAW_PATH"), out_path=EnvVar("OUT_PATH"))
+path_resource = PathResource(
+    raw_path=EnvVar("RAW_PATH"),
+    out_path=EnvVar("OUT_PATH"),
+    intermediate_path=EnvVar("INTERMEDIATE_PATH"),
+)
 
 with open("./config.toml", "r", encoding="utf8") as f:
     config = toml.load(f)
@@ -83,6 +90,7 @@ preference_resource = PreferenceResource(
 defs = Definitions(
     assets=geometry_assets
     + ageb_assets
+    + ageb_initial_assets
     + census_assets
     + georeferencing_assets
     + mapshaper_assets

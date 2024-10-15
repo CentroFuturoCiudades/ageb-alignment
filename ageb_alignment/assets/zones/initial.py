@@ -7,6 +7,7 @@ from dagster import (
     asset,
     AssetDep,
     AssetExecutionContext,
+    AssetIn,
     BackfillPolicy,
     ExperimentalWarning,
 )
@@ -19,17 +20,14 @@ import warnings
 warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 
-def _load_agebs_and_prep_paths(root_out_path: Path, year: int) -> gpd.GeoDataFrame:
+def _process_agebs(agebs: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    return agebs.assign(CVEGEO_MUN=lambda df: df.CVEGEO.str[:5]).set_index("CVEGEO")
+
+
+def _prep_paths(root_out_path: Path, year: int) -> gpd.GeoDataFrame:
     out_path = root_out_path / f"zone_agebs_initial/{year}"
     out_path.mkdir(exist_ok=True, parents=True)
-
-    ageb_path = root_out_path / f"framework/agebs/{year}.gpkg"
-    df = (
-        gpd.read_file(ageb_path)
-        .assign(CVEGEO_MUN=lambda df: df.CVEGEO.str[:5])
-        .set_index("CVEGEO")
-    )
-    return df, out_path
+    return out_path
 
 
 def _extract_and_fix_geometry(df: gpd.GeoDataFrame, mun_list: list) -> gpd.GeoDataFrame:
@@ -51,27 +49,31 @@ def _remove_not_in_mun(gdf: gpd.GeoDataFrame, mun_gdf: gpd.GeoDataFrame):
 @asset(
     name="2020",
     key_prefix=["zone_agebs", "initial"],
-    deps=[AssetDep(["framework", "agebs", "2020"])],
+    ins={"agebs": AssetIn(key=["framework", "agebs", "2020"])},
     partitions_def=zone_partitions,
     backfill_policy=BackfillPolicy.single_run(),
 )
 def zone_agebs_2020(
-    context: AssetExecutionContext, path_resource: PathResource, metropoli_list: dict
+    context: AssetExecutionContext,
+    path_resource: PathResource,
+    metropoli_list: dict,
+    agebs: gpd.GeoDataFrame,
 ) -> None:
     root_out_path = Path(path_resource.out_path)
-    df, out_path = _load_agebs_and_prep_paths(root_out_path, 2020)
+    out_path = _prep_paths(root_out_path, 2020)
 
+    agebs = _process_agebs(agebs)
     for zone in context.partition_keys:
         mun_list = metropoli_list[zone]
-        zone_agebs = _extract_and_fix_geometry(df, mun_list)
+        zone_agebs = _extract_and_fix_geometry(agebs, mun_list)
         zone_agebs = zone_agebs.to_crs("EPSG:4326")
         zone_agebs.to_file(out_path / f"{zone}.geojson")
 
 
 def zone_agebs_factory(year: int) -> asset:
     @asset(
+        ins={"agebs": AssetIn(key=["framework", "agebs", str(year)])},
         deps=[
-            AssetDep(["framework", "agebs", str(year)]),
             AssetDep(["framework", "municipalities", "2020"]),
         ],
         name=str(year),
@@ -84,9 +86,13 @@ def zone_agebs_factory(year: int) -> asset:
         path_resource: PathResource,
         remove_from_mun_resource: AgebDictResource,
         metropoli_list: dict,
+        agebs: gpd.GeoDataFrame,
     ) -> None:
         root_out_path = Path(path_resource.out_path)
-        df, out_path = _load_agebs_and_prep_paths(root_out_path, year)
+        out_path = _prep_paths(root_out_path, year)
+
+        agebs = _process_agebs(agebs)
+
         municipalities_2020 = gpd.read_file(
             root_out_path / "framework/municipalities/2020.gpkg"
         )
@@ -95,7 +101,7 @@ def zone_agebs_factory(year: int) -> asset:
 
         for zone in context.partition_keys:
             mun_list = metropoli_list[zone]
-            zone_agebs = _extract_and_fix_geometry(df, mun_list)
+            zone_agebs = _extract_and_fix_geometry(agebs, mun_list)
 
             mun_list_trimmed = [int(m) for m in mun_list]
             mun_gdf = municipalities_2020[

@@ -10,24 +10,19 @@ def agebs_manual_factory(year: int) -> asset:
         name=str(year),
         key_prefix=["framework", "agebs"],
         ins={"agebs": AssetIn(key=["agebs_initial", str(year)])},
+        io_manager_key="framework_manager",
     )
     def _asset(
         context: AssetExecutionContext,
         path_resource: PathResource,
         agebs: gpd.GeoDataFrame,
-    ) -> None:
-        root_out_path = Path(path_resource.out_path)
-
-        out_path = root_out_path / "framework/agebs"
-        out_path.mkdir(exist_ok=True, parents=True)
-
+    ) -> gpd.GeoDataFrame:
         manual_path = Path(path_resource.intermediate_path) / f"replacement/{year}.gpkg"
         if manual_path.exists():
             df_replacement = gpd.read_file(manual_path).set_index("CVEGEO")
             agebs.update(df_replacement)
             context.log.info(f"Replaced {len(df_replacement)} AGEBs.")
-
-        agebs.to_file(out_path / f"{year}.gpkg")
+        return agebs
 
     return _asset
 

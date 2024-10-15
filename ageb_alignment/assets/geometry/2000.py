@@ -36,7 +36,7 @@ def _load_agebs(agebs_path: Path) -> GeometryTuple:
     return mg_2000_au
 
 
-@asset
+@asset(name="2000", key_prefix="geometry")
 def geometry_2000(
     path_resource: PathResource, overlap_resource: AgebListResource
 ) -> GeometryTuple:

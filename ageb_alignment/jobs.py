@@ -7,16 +7,16 @@ generate_framework_job = define_asset_job(
     "generate_framework",
     [
         "*metropoli_list",
-        "*municipalities_2000",
-        "*municipalities_2010",
-        "*municipalities_2020",
-        "*states_2000",
-        "*states_2010",
-        "*states_2020",
-        "*agebs_1990",
-        "*agebs_2000",
-        "*agebs_2010",
-        "*agebs_2020",
+        "*framework/municipalities/2000",
+        "*framework/municipalities/2010",
+        "*framework/municipalities/2020",
+        "*framework/states/2000",
+        "*framework/states/2010",
+        "*framework/states/2020",
+        "*framework/agebs/1990",
+        "*framework/agebs/2000",
+        "*framework/agebs/2010",
+        "*framework/agebs/2020",
     ],
 )
 
@@ -24,10 +24,10 @@ generate_framework_job = define_asset_job(
 fix_zones_job = define_asset_job(
     "fix_zones",
     [
-        "+zone_agebs_fixed_1990",
-        "+zone_agebs_fixed_2000",
-        "+zone_agebs_fixed_2010",
-        "+zone_agebs_fixed_2020",
+        "+zone_agebs/shaped/1990",
+        "+zone_agebs/shaped/2000",
+        "+zone_agebs/shaped/2010",
+        "+zone_agebs/shaped/2020",
     ],
 )
 

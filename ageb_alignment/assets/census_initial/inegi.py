@@ -1,0 +1,64 @@
+import pandas as pd
+
+from ageb_alignment.resources import PathResource
+from dagster import asset
+from pathlib import Path
+
+
+def load_census_inegi(census_path: Path) -> pd.DataFrame:
+    census = (
+        pd.concat(
+            [
+                pd.read_csv(
+                    f,
+                    low_memory=False,
+                    na_values=["*", "N/D"],
+                    usecols=lambda x: x.upper()
+                    in [
+                        "ENTIDAD",
+                        "NOM_ENT",
+                        "MUN",
+                        "NOM_MUN",
+                        "LOC",
+                        "AGEB",
+                        "MZA",
+                        "POBTOT",
+                    ],
+                )
+                .pipe(lambda df: df.set_axis(df.columns.str.upper(), axis=1))
+                .query("MZA == 0 & AGEB != '0000' & AGEB != '0'")
+                .drop(columns=["MZA"])
+                for f in census_path.glob("*.csv")
+            ]
+        )
+        .rename(
+            columns={
+                "ENTIDAD": "CVE_ENT",
+                "MUN": "CVE_MUN",
+                "LOC": "CVE_LOC",
+                "AGEB": "CVE_AGEB",
+            }
+        )
+        .assign(
+            CVEGEO=lambda df: df.CVE_ENT.astype(str).str.pad(2, "left", "0")
+            + df.CVE_MUN.astype(str).str.pad(3, "left", "0")
+            + df.CVE_LOC.astype(str).str.pad(4, "left", "0")
+            + df.CVE_AGEB.str.pad(4, "left", "0")
+        )
+        .set_index("CVEGEO")
+        .sort_index()
+        .drop(columns=["CVE_ENT", "CVE_MUN", "CVE_LOC", "CVE_AGEB"])
+    )
+    return census
+
+
+def census_inegi_factory(year: int) -> asset:
+    @asset(name=str(year), key_prefix="inegi")
+    def _asset(path_resource: PathResource) -> pd.DataFrame:
+        census_path = Path(path_resource.raw_path) / f"census/INEGI/{year}"
+        return load_census_inegi(census_path)
+
+    return _asset
+
+
+census_inegi_assets = [census_inegi_factory(year) for year in (2010, 2020)]

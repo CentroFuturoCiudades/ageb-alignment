@@ -3,7 +3,13 @@ import numpy as np
 
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import AgebDictResource, PathResource
-from dagster import asset, AssetExecutionContext, BackfillPolicy, ExperimentalWarning
+from dagster import (
+    asset,
+    AssetDep,
+    AssetExecutionContext,
+    BackfillPolicy,
+    ExperimentalWarning,
+)
 from pathlib import Path
 
 
@@ -14,7 +20,7 @@ warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 
 def _load_agebs_and_prep_paths(root_out_path: Path, year: int) -> gpd.GeoDataFrame:
-    out_path = root_out_path / f"zone_agebs/{year}"
+    out_path = root_out_path / f"zone_agebs_initial/{year}"
     out_path.mkdir(exist_ok=True, parents=True)
 
     ageb_path = root_out_path / f"framework/agebs/{year}.gpkg"
@@ -43,7 +49,9 @@ def _remove_not_in_mun(gdf: gpd.GeoDataFrame, mun_gdf: gpd.GeoDataFrame):
 
 
 @asset(
-    deps=["agebs_2020"],
+    name="2020",
+    key_prefix=["zone_agebs", "initial"],
+    deps=[AssetDep(["framework", "agebs", "2020"])],
     partitions_def=zone_partitions,
     backfill_policy=BackfillPolicy.single_run(),
 )
@@ -62,8 +70,12 @@ def zone_agebs_2020(
 
 def zone_agebs_factory(year: int) -> asset:
     @asset(
-        deps=[f"agebs_{year}", "municipalities_2020"],
-        name=f"zone_agebs_{year}",
+        deps=[
+            AssetDep(["framework", "agebs", str(year)]),
+            AssetDep(["framework", "municipalities", "2020"]),
+        ],
+        name=str(year),
+        key_prefix=["zone_agebs", "initial"],
         partitions_def=zone_partitions,
         backfill_policy=BackfillPolicy.single_run(),
     )

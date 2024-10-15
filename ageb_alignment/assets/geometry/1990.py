@@ -4,7 +4,7 @@ import pandas as pd
 from ageb_alignment.assets.geometry.common import fix_overlapped
 from ageb_alignment.types import GeometryTuple
 from ageb_alignment.resources import AgebListResource, PathResource
-from dagster import asset
+from dagster import asset, AssetIn
 from pathlib import Path
 
 
@@ -146,7 +146,11 @@ def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame)
     return fixed_agebs
 
 
-@asset
+@asset(
+    name="1990",
+    key_prefix="geometry",
+    ins={"geometry_2000": AssetIn(key=["geometry", "2000"])},
+)
 def geometry_1990(
     path_resource: PathResource,
     overlap_resource: AgebListResource,

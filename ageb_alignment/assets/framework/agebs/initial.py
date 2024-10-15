@@ -6,7 +6,14 @@ from dagster import asset, AssetIn
 from pathlib import Path
 
 
-@asset(ins={"census_1990": AssetIn(key=["census", "1990"])})
+@asset(
+    name="1990",
+    key_prefix="agebs_initial",
+    ins={
+        "census_1990": AssetIn(key=["census", "1990"]),
+        "geometry_1990": AssetIn(key=["geometry", "1990"]),
+    },
+)
 def agebs_1990_initial(
     path_resource: PathResource, geometry_1990: GeometryTuple, census_1990: CensusTuple
 ) -> gpd.GeoDataFrame:
@@ -23,7 +30,14 @@ def agebs_1990_initial(
     return merged
 
 
-@asset(ins={"census_2000": AssetIn(key=["census", "2000"])})
+@asset(
+    name="2000",
+    key_prefix="agebs_initial",
+    ins={
+        "census_2000": AssetIn(key=["census", "2000"]),
+        "geometry_2000": AssetIn(key=["geometry", "2000"]),
+    },
+)
 def agebs_2000_initial(
     path_resource: PathResource, geometry_2000: GeometryTuple, census_2000: CensusTuple
 ) -> gpd.GeoDataFrame:
@@ -34,7 +48,14 @@ def agebs_2000_initial(
     return merged
 
 
-@asset(ins={"census_2010": AssetIn(key=["census", "2010"])})
+@asset(
+    name="2010",
+    key_prefix="agebs_initial",
+    ins={
+        "census_2010": AssetIn(key=["census", "2010"]),
+        "geometry_2010": AssetIn(key=["geometry", "2010"]),
+    },
+)
 def agebs_2010_initial(
     path_resource: PathResource, geometry_2010: GeometryTuple, census_2010: CensusTuple
 ) -> gpd.GeoDataFrame:
@@ -65,7 +86,14 @@ def agebs_2010_initial(
     return merged
 
 
-@asset(ins={"census_2020": AssetIn(key=["census", "2020"])})
+@asset(
+    name="2020",
+    key_prefix="agebs_initial",
+    ins={
+        "census_2020": AssetIn(key=["census", "2020"]),
+        "geometry_2020": AssetIn(key=["geometry", "2020"]),
+    },
+)
 def agebs_2020_initial(
     path_resource: PathResource, geometry_2020: GeometryTuple, census_2020: CensusTuple
 ) -> gpd.GeoDataFrame:

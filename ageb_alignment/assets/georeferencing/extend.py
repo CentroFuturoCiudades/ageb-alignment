@@ -5,7 +5,7 @@ import pandas as pd
 
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource
-from dagster import asset, AssetExecutionContext
+from dagster import asset, AssetDep, AssetExecutionContext
 from pathlib import Path
 
 
@@ -41,7 +41,12 @@ def extend_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 @asset(
-    deps=["zone_agebs_fixed_2000", "zone_agebs_fixed_2010"],
+    name="2000",
+    key_prefix="zones_extended",
+    deps=[
+        AssetDep(["zone_agebs", "shaped", "2000"]),
+        AssetDep(["zone_agebs", "shaped", "2010"]),
+    ],
     partitions_def=zone_partitions,
 )
 def zones_extended_2000(
@@ -49,36 +54,8 @@ def zones_extended_2000(
 ) -> tuple:
     zone = context.partition_key
 
-    fixed_path = Path(path_resource.out_path) / "zone_agebs_fixed"
+    fixed_path = Path(path_resource.out_path) / "zone_agebs_shaped"
     df_source = (extend_gdf(gpd.read_file(fixed_path / f"2000/{zone}.gpkg")),)
     df_target = (extend_gdf(gpd.read_file(fixed_path / f"2010/{zone}.gpkg")),)
 
     return df_source, df_target
-
-
-# @asset(deps=["clean_census"])
-# def extend_census_1990(
-#     context: AssetExecutionContext, path_resource: PathResource
-# ) -> dict:
-#     fixed_path = Path(path_resource.out_path) / "census_fixed"
-#     georeferenced_path = Path(path_resource.out_path) / "georeferenced_2000"
-
-#     out_dict = {}
-#     for path in fixed_path.glob("*"):
-#         if not path.is_dir():
-#             continue
-
-#         city = path.stem.casefold()
-#         source_path = fixed_path / f"{city}/1990.geojson"
-#         target_path = georeferenced_path / f"{city}.geojson"
-
-#         if not target_path.exists():
-#             context.log.warning(f"Georeferenced data for {city} not found. Skipping.")
-#             continue
-
-#         out_dict[city] = [
-#             extend_gdf(gpd.read_file(source_path, engine="pyogrio")),
-#             extend_gdf(gpd.read_file(target_path, engine="pyogrio")),
-#         ]
-
-#     return out_dict

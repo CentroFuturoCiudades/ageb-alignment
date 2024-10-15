@@ -1,14 +1,13 @@
 import toml
 
-from ageb_alignment.assets import (
-    census,
-    framework,
-    geometry,
-    georeferencing,
-    mapshaper,
-    metropoli,
-    zones,
-)
+from ageb_alignment.assets import census, metropoli, framework, geometry, georeferencing
+from ageb_alignment.assets.census_initial import inegi as census_initial_inegi
+from ageb_alignment.assets.census_initial import iter as census_initial_iter
+from ageb_alignment.assets.census_initial import scince as census_initial_scince
+
+from ageb_alignment.assets.zones import initial as zones_initial
+from ageb_alignment.assets.zones import shaped as zones_shaped
+
 
 from ageb_alignment.jobs import (
     generate_framework_job,
@@ -39,26 +38,38 @@ warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 # Assets
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
-mapshaper_assets = load_assets_from_modules([mapshaper], group_name="mapshaper")
 
-census_assets = load_assets_from_package_module(census, group_name="census")
+
+zones_initial_assets = load_assets_from_modules([zones_initial], group_name="zones")
+zones_shaped_assets = load_assets_from_modules([zones_shaped], group_name="mapshaper")
+
+
+census_assets = load_assets_from_modules([census], group_name="census")
+
+
+iter_assets = load_assets_from_modules([census_initial_iter], group_name="iter")
+inegi_assets = load_assets_from_modules([census_initial_inegi], group_name="inegi")
+scince_assets = load_assets_from_modules([census_initial_scince], group_name="scince")
+
 
 geometry_assets = load_assets_from_package_module(geometry, group_name="geometry")
+
 
 georeferencing_assets = load_assets_from_package_module(
     georeferencing, group_name="georeferencing"
 )
 
+
 ageb_assets = load_assets_from_modules(
     [framework.agebs_initial], group_name="agebs_initial"
 )
-ageb_initial_assets = load_assets_from_modules([framework.agebs], group_name="agebs")
+ageb_initial_assets = load_assets_from_modules(
+    [framework.agebs_fixed], group_name="agebs"
+)
 municipality_assets = load_assets_from_modules(
     [framework.municipalities], group_name="municipalities"
 )
 state_assets = load_assets_from_modules([framework.states], group_name="states")
-
-zones_assets = load_assets_from_modules([zones], group_name="zones")
 
 
 # Resources
@@ -92,12 +103,15 @@ defs = Definitions(
     + ageb_assets
     + ageb_initial_assets
     + census_assets
+    + iter_assets
+    + inegi_assets
+    + scince_assets
     + georeferencing_assets
-    + mapshaper_assets
+    + zones_initial_assets
+    + zones_shaped_assets
     + municipality_assets
     + state_assets
-    + metropoli_assets
-    + zones_assets,
+    + metropoli_assets,
     resources={
         "path_resource": path_resource,
         "overlap_resource": overlap_resource,

@@ -5,14 +5,17 @@ import geopandas as gpd
 
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource, PreferenceResource
-from dagster import asset, AssetExecutionContext
+from dagster import asset, AssetDep, AssetExecutionContext
 from pathlib import Path
 
 
-def zone_agebs_clean_factory(year: int) -> asset:
-    name = f"zone_agebs_fixed_{year}"
-
-    @asset(name=name, deps=[f"zone_agebs_{year}"], partitions_def=zone_partitions)
+def zone_agebs_shaped_factory(year: int) -> asset:
+    @asset(
+        name=str(year),
+        key_prefix=["zone_agebs", "shaped"],
+        deps=[AssetDep(["zone_agebs", "initial", str(year)])],
+        partitions_def=zone_partitions,
+    )
     def _asset(
         context: AssetExecutionContext,
         path_resource: PathResource,
@@ -22,9 +25,9 @@ def zone_agebs_clean_factory(year: int) -> asset:
 
         out_root_path = Path(path_resource.out_path)
 
-        in_path = out_root_path / f"zone_agebs/{year}/{zone}.geojson"
+        in_path = out_root_path / f"zone_agebs_initial/{year}/{zone}.geojson"
 
-        out_dir = out_root_path / f"zone_agebs_fixed/{year}"
+        out_dir = out_root_path / f"zone_agebs_shaped/{year}"
         out_dir.mkdir(exist_ok=True, parents=True)
 
         out_path_json = out_dir / f"{zone}.geojson"
@@ -67,4 +70,6 @@ def zone_agebs_clean_factory(year: int) -> asset:
     return _asset
 
 
-zone_agebs_clean = [zone_agebs_clean_factory(year) for year in (1990, 2000, 2010, 2020)]
+zone_agebs_clean = [
+    zone_agebs_shaped_factory(year) for year in (1990, 2000, 2010, 2020)
+]

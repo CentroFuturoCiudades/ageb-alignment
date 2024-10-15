@@ -4,7 +4,11 @@ from dagster import asset, AssetIn
 from pathlib import Path
 
 
-@asset
+@asset(
+    name="2000",
+    key_prefix=["framework", "states"],
+    ins={"geometry_2000": AssetIn(key=["geometry", "2000"])},
+)
 def states_2000(path_resource: PathResource, geometry_2000: GeometryTuple) -> None:
     out_path = Path(path_resource.out_path) / "framework/states"
     out_path.mkdir(exist_ok=True, parents=True)
@@ -18,7 +22,14 @@ def states_2000(path_resource: PathResource, geometry_2000: GeometryTuple) -> No
     merged.to_file(out_path / "2000.gpkg")
 
 
-@asset(ins={"census_2010": AssetIn(key=["census", "2010"])})
+@asset(
+    name="2010",
+    key_prefix=["framework", "states"],
+    ins={
+        "census_2010": AssetIn(key=["census", "2010"]),
+        "geometry_2010": AssetIn(key=["geometry", "2010"]),
+    },
+)
 def states_2010(
     path_resource: PathResource, geometry_2010: GeometryTuple, census_2010: CensusTuple
 ) -> None:
@@ -35,7 +46,14 @@ def states_2010(
     merged.to_file(out_path / "2010.gpkg")
 
 
-@asset(ins={"census_2020": AssetIn(key=["census", "2020"])})
+@asset(
+    name="2020",
+    key_prefix=["framework", "states"],
+    ins={
+        "census_2020": AssetIn(key=["census", "2020"]),
+        "geometry_2020": AssetIn(key=["geometry", "2020"]),
+    },
+)
 def states_2020(
     path_resource: PathResource, geometry_2020: GeometryTuple, census_2020: CensusTuple
 ) -> None:

@@ -7,7 +7,7 @@ from dagster import asset
 from pathlib import Path
 
 
-@asset
+@asset(name="2010", key_prefix="geometry")
 def geometry_2010(
     path_resource: PathResource, overlap_resource: AgebListResource
 ) -> GeometryTuple:

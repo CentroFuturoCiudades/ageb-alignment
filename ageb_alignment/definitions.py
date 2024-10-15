@@ -7,6 +7,7 @@ from ageb_alignment.assets.census_initial import scince as census_initial_scince
 
 from ageb_alignment.assets.zones import initial as zones_initial
 from ageb_alignment.assets.zones import shaped as zones_shaped
+from ageb_alignment.assets.zones import replaced as zones_replaced
 
 
 from ageb_alignment.jobs import (
@@ -18,6 +19,7 @@ from ageb_alignment.jobs import (
 from ageb_alignment.resources import (
     AgebDictResource,
     AgebListResource,
+    AgebNestedDictResource,
     PathResource,
     PreferenceResource,
 )
@@ -42,6 +44,9 @@ metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
 
 zones_initial_assets = load_assets_from_modules([zones_initial], group_name="zones")
 zones_shaped_assets = load_assets_from_modules([zones_shaped], group_name="mapshaper")
+zones_replaced_assets = load_assets_from_modules(
+    [zones_replaced], group_name="replacement"
+)
 
 
 census_assets = load_assets_from_modules([census], group_name="census")
@@ -79,23 +84,28 @@ path_resource = PathResource(
     intermediate_path=EnvVar("INTERMEDIATE_PATH"),
 )
 
-with open("./config.toml", "r", encoding="utf8") as f:
-    config = toml.load(f)
-
-overlap_list = {}
-for year, agebs in config["overlaps"].items():
-    overlap_list[f"ageb_{year}"] = agebs
+with open("./configs/overlaps.toml", "r", encoding="utf8") as f:
+    overlap_list = toml.load(f)
+overlap_list = {f"ageb_{key}": value for key, value in overlap_list.items()}
 overlap_resource = AgebListResource(**overlap_list)
 
-remove_from_mun_list = {}
-for year, agebs in config["remove_from_mun"].items():
-    remove_from_mun_list[f"ageb_{year}"] = agebs
+with open("./configs/remove_from_mun.toml", encoding="utf8") as f:
+    remove_from_mun_list = toml.load(f)
+remove_from_mun_list = {
+    f"ageb_{key}": value for key, value in remove_from_mun_list.items()
+}
 remove_from_mun_resource = AgebDictResource(**remove_from_mun_list)
 
+with open("./configs/preferences.toml", "r", encoding="utf8") as f:
+    preferences = toml.load(f)
 preference_resource = PreferenceResource(
-    raise_on_deleted_geometries=config["preferences"]["raise_on_deleted_geometries"]
+    raise_on_deleted_geometries=preferences["raise_on_deleted_geometries"]
 )
 
+replacement_list = {}
+with open("./configs/replacement/1990_2000.toml", "r", encoding="utf8") as f:
+    replacement_list["ageb_1990"] = toml.load(f)
+replacement_resource = AgebNestedDictResource(**replacement_list)
 
 # Definition
 defs = Definitions(
@@ -109,6 +119,7 @@ defs = Definitions(
     + georeferencing_assets
     + zones_initial_assets
     + zones_shaped_assets
+    + zones_replaced_assets
     + municipality_assets
     + state_assets
     + metropoli_assets,
@@ -117,6 +128,7 @@ defs = Definitions(
         "overlap_resource": overlap_resource,
         "remove_from_mun_resource": remove_from_mun_resource,
         "preference_resource": preference_resource,
+        "replacement_resource": replacement_resource,
     },
     jobs=[generate_framework_job, generate_gcp_2000_job, fix_zones_job],
 )

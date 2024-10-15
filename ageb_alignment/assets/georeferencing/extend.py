@@ -44,8 +44,8 @@ def extend_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     name="2000",
     key_prefix="zones_extended",
     deps=[
-        AssetDep(["zone_agebs", "shaped", "2000"]),
-        AssetDep(["zone_agebs", "shaped", "2010"]),
+        AssetDep(["zone_agebs", "replaced", "2000"]),
+        AssetDep(["zone_agebs", "replaced", "2010"]),
     ],
     partitions_def=zone_partitions,
 )
@@ -54,7 +54,7 @@ def zones_extended_2000(
 ) -> tuple:
     zone = context.partition_key
 
-    fixed_path = Path(path_resource.out_path) / "zone_agebs_shaped"
+    fixed_path = Path(path_resource.out_path) / "zone_agebs_replaced"
     df_source = (extend_gdf(gpd.read_file(fixed_path / f"2000/{zone}.gpkg")),)
     df_target = (extend_gdf(gpd.read_file(fixed_path / f"2010/{zone}.gpkg")),)
 

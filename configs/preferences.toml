@@ -1,0 +1,9 @@
+raise_on_deleted_geometries = true
+
+# [pos_alignment_1990]
+# # replace geometry with target
+# "28.1.02" = [["2803800011194"], ["2010", "2803800011404"]]
+
+# [pos_alignment_2000]
+# # replace geometry with target
+# "28.1.02" = [["2803800011194"], ["2010", "2803800011404"]]

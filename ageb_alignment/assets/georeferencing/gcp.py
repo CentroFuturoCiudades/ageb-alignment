@@ -81,7 +81,8 @@ def process_df_pair(
 
 def initial_gcp_factory(year: int) -> AssetsDefinition:
     @asset(
-        name=f"initial_gcp_{year}",
+        name=str(year),
+        key_prefix=["gcp", "initial"],
         ins={"census_extended": AssetIn(key=["zones_extended", str(year)])},
         partitions_def=zone_partitions,
     )

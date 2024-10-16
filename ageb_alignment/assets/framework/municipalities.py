@@ -8,7 +8,7 @@ from dagster import asset, AssetIn
     name="2000",
     key_prefix=["framework", "municipalities"],
     ins={"geometry_2000": AssetIn(key=["geometry", "2000"])},
-    io_manager_key="framework_manager",
+    io_manager_key="gpkg_manager",
 )
 def municipalities_2000(geometry_2000: GeometryTuple) -> gpd.GeoDataFrame:
     merged = (
@@ -32,7 +32,7 @@ def municipalities_2000(geometry_2000: GeometryTuple) -> gpd.GeoDataFrame:
         "census_2010": AssetIn(key=["census", "2010"]),
         "geometry_2010": AssetIn(key=["geometry", "2010"]),
     },
-    io_manager_key="framework_manager",
+    io_manager_key="gpkg_manager",
 )
 def municipalities_2010(
     geometry_2010: GeometryTuple, census_2010: CensusTuple
@@ -58,7 +58,7 @@ def municipalities_2010(
         "census_2020": AssetIn(key=["census", "2020"]),
         "geometry_2020": AssetIn(key=["geometry", "2020"]),
     },
-    io_manager_key="framework_manager",
+    io_manager_key="gpkg_manager",
 )
 def municipalities_2020(
     geometry_2020: GeometryTuple, census_2020: CensusTuple

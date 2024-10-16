@@ -1,41 +1,35 @@
 import geopandas as gpd
 
 from ageb_alignment.partitions import zone_partitions
-from ageb_alignment.resources import PathResource, AgebNestedDictResource
-from dagster import asset, AssetDep, AssetExecutionContext
-from pathlib import Path
+from ageb_alignment.resources import AgebNestedDictResource
+from dagster import asset, AssetExecutionContext, AssetIn
 
 
 def zones_replaced_factory(year: int) -> asset:
     @asset(
         name=str(year),
         key_prefix=["zone_agebs", "replaced"],
-        deps=[AssetDep(["zone_agebs", "shaped", str(year)])],
+        ins={"agebs_initial": AssetIn(["zone_agebs", "initial", str(year)])},
         partitions_def=zone_partitions,
+        io_manager_key="geojson_manager",
     )
     def _asset(
         context: AssetExecutionContext,
-        path_resource: PathResource,
         replacement_resource: AgebNestedDictResource,
-    ) -> None:
+        agebs_initial: gpd.GeoDataFrame,
+    ) -> gpd.GeoDataFrame:
         zone = context.partition_key
-        root_out_path = Path(path_resource.out_path)
-
-        replaced_path = root_out_path / f"zone_agebs_replaced/{year}"
-        replaced_path.mkdir(exist_ok=True, parents=True)
-
-        df = gpd.read_file(root_out_path / f"zone_agebs_shaped/{year}/{zone}.gpkg")
 
         if zone in replacement_resource:
             ageb_map = replacement_resource[zone]
             for old_ageb, new_agebs in ageb_map.items():
-                new_geometry = df.loc[new_agebs, "geometry"].union_all()
+                new_geometry = agebs_initial.loc[new_agebs, "geometry"].union_all()
                 if new_geometry.geom_type != "Polygon":
                     raise Exception("Non-Polygon created.")
 
-                df.loc[old_ageb, "geometry"] = new_geometry
+                agebs_initial.loc[old_ageb, "geometry"] = new_geometry
 
-        df.to_file(replaced_path / f"{zone}.gpkg")
+        return agebs_initial
 
     return _asset
 

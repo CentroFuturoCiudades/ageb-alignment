@@ -111,7 +111,8 @@ replacement_resource = AgebNestedDictResource(**replacement_list)
 
 
 # Managers
-framework_manager = FrameworkIOManager(path_resource=path_resource)
+gpkg_manager = FrameworkIOManager(path_resource=path_resource, extension=".gpkg")
+geojson_manager = FrameworkIOManager(path_resource=path_resource, extension=".geojson")
 
 
 # Definition
@@ -136,7 +137,8 @@ defs = Definitions(
         "remove_from_mun_resource": remove_from_mun_resource,
         "preference_resource": preference_resource,
         "replacement_resource": replacement_resource,
-        "framework_manager": framework_manager,
+        "gpkg_manager": gpkg_manager,
+        "geojson_manager": geojson_manager,
     },
     jobs=[generate_framework_job, generate_gcp_2000_job, fix_zones_job],
 )

@@ -10,7 +10,7 @@ def agebs_manual_factory(year: int) -> asset:
         name=str(year),
         key_prefix=["framework", "agebs"],
         ins={"agebs": AssetIn(key=["agebs_initial", str(year)])},
-        io_manager_key="framework_manager",
+        io_manager_key="gpkg_manager",
     )
     def _asset(
         context: AssetExecutionContext,

@@ -13,25 +13,26 @@ def zone_agebs_shaped_factory(year: int) -> asset:
     @asset(
         name=str(year),
         key_prefix=["zone_agebs", "shaped"],
-        deps=[AssetDep(["zone_agebs", "initial", str(year)])],
+        deps=[AssetDep(["zone_agebs", "replaced", str(year)])],
         partitions_def=zone_partitions,
+        io_manager_key="gpkg_manager",
     )
     def _asset(
         context: AssetExecutionContext,
         path_resource: PathResource,
         preference_resource: PreferenceResource,
-    ) -> None:
+    ) -> gpd.GeoDataFrame:
         zone = context.partition_key
+        (dep_key,) = context.assets_def.asset_deps[context.asset_key]
 
         out_root_path = Path(path_resource.out_path)
 
-        in_path = out_root_path / f"zone_agebs_initial/{year}/{zone}.geojson"
+        in_path = out_root_path / "/".join(dep_key.path) / f"{zone}.geojson"
 
-        out_dir = out_root_path / f"zone_agebs_shaped/{year}"
+        out_dir = out_root_path / "/".join(context.asset_key.path)
         out_dir.mkdir(exist_ok=True, parents=True)
 
         out_path_json = out_dir / f"{zone}.geojson"
-        out_path_gpkg = out_dir / f"{zone}.gpkg"
 
         if os.name == "nt":
             shell = True
@@ -65,7 +66,7 @@ def zone_agebs_shaped_factory(year: int) -> asset:
                 context.warning(f"Geometries for zone {zone} were deleted.")
 
         df = df.to_crs("EPSG:6372")
-        df.to_file(out_path_gpkg)
+        return df
 
     return _asset
 

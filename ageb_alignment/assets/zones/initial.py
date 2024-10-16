@@ -2,13 +2,11 @@ import geopandas as gpd
 import numpy as np
 
 from ageb_alignment.partitions import zone_partitions
-from ageb_alignment.resources import AgebDictResource, PathResource
+from ageb_alignment.resources import AgebDictResource
 from dagster import (
     asset,
-    AssetDep,
     AssetExecutionContext,
     AssetIn,
-    BackfillPolicy,
     ExperimentalWarning,
 )
 from pathlib import Path
@@ -25,7 +23,7 @@ def _process_agebs(agebs: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 def _prep_paths(root_out_path: Path, year: int) -> gpd.GeoDataFrame:
-    out_path = root_out_path / f"zone_agebs_initial/{year}"
+    out_path = root_out_path / f"zone_agebs/initial/{year}"
     out_path.mkdir(exist_ok=True, parents=True)
     return out_path
 
@@ -51,71 +49,62 @@ def _remove_not_in_mun(gdf: gpd.GeoDataFrame, mun_gdf: gpd.GeoDataFrame):
     key_prefix=["zone_agebs", "initial"],
     ins={"agebs": AssetIn(key=["framework", "agebs", "2020"])},
     partitions_def=zone_partitions,
-    backfill_policy=BackfillPolicy.single_run(),
+    io_manager_key="geojson_manager",
 )
 def zone_agebs_2020(
     context: AssetExecutionContext,
-    path_resource: PathResource,
     metropoli_list: dict,
     agebs: gpd.GeoDataFrame,
-) -> None:
-    root_out_path = Path(path_resource.out_path)
-    out_path = _prep_paths(root_out_path, 2020)
+) -> gpd.GeoDataFrame:
+    zone = context.partition_key
 
     agebs = _process_agebs(agebs)
-    for zone in context.partition_keys:
-        mun_list = metropoli_list[zone]
-        zone_agebs = _extract_and_fix_geometry(agebs, mun_list)
-        zone_agebs = zone_agebs.to_crs("EPSG:4326")
-        zone_agebs.to_file(out_path / f"{zone}.geojson")
+    mun_list = metropoli_list[zone]
+    zone_agebs = _extract_and_fix_geometry(agebs, mun_list)
+    zone_agebs = zone_agebs.to_crs("EPSG:4326")
+    return zone_agebs
 
 
 def zone_agebs_factory(year: int) -> asset:
     @asset(
-        ins={"agebs": AssetIn(key=["framework", "agebs", str(year)])},
-        deps=[
-            AssetDep(["framework", "municipalities", "2020"]),
-        ],
+        ins={
+            "agebs": AssetIn(key=["framework", "agebs", str(year)]),
+            "municipalities_2020": AssetIn(key=["framework", "municipalities", "2020"]),
+        },
         name=str(year),
         key_prefix=["zone_agebs", "initial"],
         partitions_def=zone_partitions,
-        backfill_policy=BackfillPolicy.single_run(),
+        io_manager_key="geojson_manager",
     )
     def _asset(
         context: AssetExecutionContext,
-        path_resource: PathResource,
         remove_from_mun_resource: AgebDictResource,
         metropoli_list: dict,
         agebs: gpd.GeoDataFrame,
-    ) -> None:
-        root_out_path = Path(path_resource.out_path)
-        out_path = _prep_paths(root_out_path, year)
+        municipalities_2020: gpd.GeoDataFrame,
+    ) -> gpd.GeoDataFrame:
+        zone = context.partition_key
 
         agebs = _process_agebs(agebs)
 
-        municipalities_2020 = gpd.read_file(
-            root_out_path / "framework/municipalities/2020.gpkg"
-        )
-
         remove_dict = getattr(remove_from_mun_resource, f"ageb_{year}")
 
-        for zone in context.partition_keys:
-            mun_list = metropoli_list[zone]
-            zone_agebs = _extract_and_fix_geometry(agebs, mun_list)
+        mun_list = metropoli_list[zone]
+        zone_agebs = _extract_and_fix_geometry(agebs, mun_list)
 
-            mun_list_trimmed = [int(m) for m in mun_list]
-            mun_gdf = municipalities_2020[
-                municipalities_2020["CVEGEO"].isin(mun_list_trimmed)
-            ]
-            if zone in remove_dict:
-                for ageb in remove_dict[zone]:
-                    if ageb == "intersect":
-                        zone_agebs = _remove_not_in_mun(zone_agebs, mun_gdf)
-                    else:
-                        zone_agebs = zone_agebs.drop(ageb)
+        mun_list_trimmed = [int(m) for m in mun_list]
+        mun_gdf = municipalities_2020[
+            municipalities_2020["CVEGEO"].isin(mun_list_trimmed)
+        ]
+        if zone in remove_dict:
+            for ageb in remove_dict[zone]:
+                if ageb == "intersect":
+                    zone_agebs = _remove_not_in_mun(zone_agebs, mun_gdf)
+                else:
+                    zone_agebs = zone_agebs.drop(ageb)
 
-            zone_agebs = zone_agebs.to_crs("EPSG:4326")
-            zone_agebs.to_file(out_path / f"{zone}.geojson")
+        zone_agebs = zone_agebs.to_crs("EPSG:4326")
+        return zone_agebs
 
     return _asset
 

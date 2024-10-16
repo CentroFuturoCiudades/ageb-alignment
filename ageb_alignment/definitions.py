@@ -16,7 +16,7 @@ from ageb_alignment.jobs import (
     fix_zones_job,
 )
 
-from ageb_alignment.managers import FrameworkIOManager
+from ageb_alignment.managers import DataFrameIOManager
 
 from ageb_alignment.resources import (
     AgebDictResource,
@@ -111,8 +111,9 @@ replacement_resource = AgebNestedDictResource(**replacement_list)
 
 
 # Managers
-gpkg_manager = FrameworkIOManager(path_resource=path_resource, extension=".gpkg")
-geojson_manager = FrameworkIOManager(path_resource=path_resource, extension=".geojson")
+gpkg_manager = DataFrameIOManager(path_resource=path_resource, extension=".gpkg")
+geojson_manager = DataFrameIOManager(path_resource=path_resource, extension=".geojson")
+points_manager = DataFrameIOManager(path_resource=path_resource, extension=".points")
 
 
 # Definition
@@ -139,6 +140,7 @@ defs = Definitions(
         "replacement_resource": replacement_resource,
         "gpkg_manager": gpkg_manager,
         "geojson_manager": geojson_manager,
+        "points_manager": points_manager,
     },
     jobs=[generate_framework_job, generate_gcp_2000_job, fix_zones_job],
 )

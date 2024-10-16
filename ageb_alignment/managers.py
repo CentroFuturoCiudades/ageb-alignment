@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Union
 
 import geopandas as gpd
+import pandas as pd
 
 from ageb_alignment.resources import PathResource
 from dagster import (
@@ -12,9 +13,12 @@ from dagster import (
 )
 
 
-class FrameworkIOManager(ConfigurableIOManager):
+class DataFrameIOManager(ConfigurableIOManager):
     path_resource: ResourceDependency[PathResource]
     extension: str
+
+    def _is_geodataframe(self):
+        return self.extension in (".gpkg", ".geojson")
 
     def _get_path(self, context: Union[InputContext, OutputContext]) -> Path:
         out_path = Path(self.path_resource.out_path)
@@ -29,7 +33,14 @@ class FrameworkIOManager(ConfigurableIOManager):
     def handle_output(self, context: OutputContext, obj: gpd.GeoDataFrame) -> None:
         out_path = self._get_path(context)
         out_path.parent.mkdir(exist_ok=True, parents=True)
-        obj.to_file(out_path)
+
+        if self._is_geodataframe():
+            obj.to_file(out_path)
+        else:
+            obj.to_csv(out_path, index=False)
 
     def load_input(self, context: InputContext) -> gpd.GeoDataFrame:
-        return gpd.read_file(self._get_path(context))
+        if self._is_geodataframe():
+            return gpd.read_file(self._get_path(context))
+        else:
+            return pd.read_csv(self._get_path(context))

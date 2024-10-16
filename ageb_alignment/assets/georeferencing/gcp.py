@@ -5,9 +5,7 @@ import networkx as nx
 import pandas as pd
 
 from ageb_alignment.partitions import zone_partitions
-from ageb_alignment.resources import PathResource
-from dagster import asset, AssetsDefinition, AssetExecutionContext, AssetIn
-from pathlib import Path
+from dagster import asset, AssetsDefinition, AssetIn
 
 
 def get_vertices(gdf):
@@ -85,20 +83,15 @@ def initial_gcp_factory(year: int) -> AssetsDefinition:
         key_prefix=["gcp", "initial"],
         ins={"census_extended": AssetIn(key=["zones_extended", str(year)])},
         partitions_def=zone_partitions,
+        io_manager_key="points_manager",
     )
     def _asset(
-        context: AssetExecutionContext,
-        path_resource: PathResource,
         census_extended: tuple,
-    ) -> None:
-        zone = context.partition_key
-        out_dir = Path(path_resource.out_path) / f"gcp/{year}/initial"
-        out_dir.mkdir(exist_ok=True, parents=True)
-
-        df_source = census_extended[0][0]
-        df_target = census_extended[1][0]
+    ) -> pd.DataFrame:
+        df_source = census_extended[0]
+        df_target = census_extended[1]
         merged = process_df_pair(df_source, df_target)
-        merged.to_csv(out_dir / f"{zone}.points", index=False)
+        return merged
 
     return _asset
 

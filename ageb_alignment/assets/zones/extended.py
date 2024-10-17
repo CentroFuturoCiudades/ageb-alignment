@@ -30,27 +30,23 @@ def get_outer_polygon(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return series
 
 
-def extend_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    gdf = gdf.copy()
-    gdf["geometry"] = gdf["geometry"].make_valid()
-    outer_poly = get_outer_polygon(gdf)
-    gdf = pd.concat([gdf, outer_poly], ignore_index=True)
-    return gdf
+def zones_extended_factory(year: int) -> asset:
+    @asset(
+        name=str(year),
+        key_prefix="zones_extended",
+        ins={
+            "agebs": AssetIn(key=["zone_agebs", "shaped", str(year)]),
+        },
+        partitions_def=zone_partitions,
+    )
+    def _asset(agebs: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+        agebs = agebs.copy()
+        agebs["geometry"] = agebs["geometry"].make_valid()
+        outer_poly = get_outer_polygon(agebs)
+        agebs = pd.concat([agebs, outer_poly], ignore_index=True)
+        return agebs
+
+    return _asset
 
 
-@asset(
-    name="2000",
-    key_prefix="zones_extended",
-    ins={
-        "agebs_2000": AssetIn(key=["zone_agebs", "shaped", "2000"]),
-        "agebs_2010": AssetIn(key=["zone_agebs", "shaped", "2010"]),
-    },
-    partitions_def=zone_partitions,
-)
-def zones_extended_2000(
-    agebs_2000: gpd.GeoDataFrame, agebs_2010: gpd.GeoDataFrame
-) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
-    df_source = extend_gdf(agebs_2000)
-    df_target = extend_gdf(agebs_2010)
-
-    return df_source, df_target
+zones_extended = [zones_extended_factory(year) for year in (1990, 2000, 2010)]

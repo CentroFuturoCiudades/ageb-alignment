@@ -64,36 +64,37 @@ def merge_columns(source, target):
     return merged
 
 
-def process_df_pair(
-    df_source: gpd.GeoDataFrame, df_target: gpd.GeoDataFrame
-) -> pd.DataFrame:
-    sources = get_vertices(df_source)
-    targets = get_vertices(df_target)
-
-    source_geoms = get_clique_geometries(df_source, sources, only_points=True)
-    target_geoms = get_clique_geometries(df_target, targets, only_points=True)
-
-    merged = merge_columns(source_geoms, target_geoms)
-    return merged
-
-
 def initial_gcp_factory(year: int) -> AssetsDefinition:
     @asset(
         name=str(year),
         key_prefix=["gcp", "initial"],
-        ins={"census_extended": AssetIn(key=["zones_extended", str(year)])},
+        ins={
+            "df_source": AssetIn(key=["zones_extended", str(year)]),
+            "df_target": AssetIn(key=["zones_extended", str(year + 10)]),
+        },
         partitions_def=zone_partitions,
         io_manager_key="points_manager",
     )
     def _asset(
-        census_extended: tuple,
+        df_source: gpd.GeoDataFrame,
+        df_target: gpd.GeoDataFrame,
     ) -> pd.DataFrame:
-        df_source = census_extended[0]
-        df_target = census_extended[1]
-        merged = process_df_pair(df_source, df_target)
+        sources = get_vertices(df_source)
+        targets = get_vertices(df_target)
+
+        source_geoms = get_clique_geometries(df_source, sources, only_points=True)
+        target_geoms = get_clique_geometries(df_target, targets, only_points=True)
+
+        merged = merge_columns(source_geoms, target_geoms)
         return merged
 
     return _asset
 
 
-initial_gcp_assets = [initial_gcp_factory(year) for year in (2000,)]
+initial_gcp_assets = [
+    initial_gcp_factory(year)
+    for year in (
+        1990,
+        2000,
+    )
+]

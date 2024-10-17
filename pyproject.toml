@@ -15,6 +15,7 @@ networkx = "^3.3"
 openpyxl = "^3.1.5"
 fiona = "^1.10.1"
 toml = "^0.10.2"
+gdal = { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.9.22/GDAL-3.9.2-cp311-cp311-win_amd64.whl" }
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"

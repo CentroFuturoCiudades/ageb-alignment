@@ -13,12 +13,9 @@ from dagster import (
 )
 
 
-class DataFrameIOManager(ConfigurableIOManager):
+class BaseManager(ConfigurableIOManager):
     path_resource: ResourceDependency[PathResource]
     extension: str
-
-    def _is_geodataframe(self):
-        return self.extension in (".gpkg", ".geojson")
 
     def _get_path(self, context: Union[InputContext, OutputContext]) -> Path:
         out_path = Path(self.path_resource.out_path)
@@ -29,6 +26,19 @@ class DataFrameIOManager(ConfigurableIOManager):
 
         fpath = fpath.with_suffix(fpath.suffix + self.extension)
         return fpath
+
+
+class PathIOManager(BaseManager):
+    def handle_output(self, context: OutputContext, obj) -> None:
+        pass
+
+    def load_input(self, context: InputContext) -> Path:
+        return self._get_path(context)
+
+
+class DataFrameIOManager(BaseManager):
+    def _is_geodataframe(self):
+        return self.extension in (".gpkg", ".geojson")
 
     def handle_output(self, context: OutputContext, obj: gpd.GeoDataFrame) -> None:
         out_path = self._get_path(context)

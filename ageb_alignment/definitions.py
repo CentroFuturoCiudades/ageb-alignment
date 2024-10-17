@@ -1,6 +1,6 @@
 import toml
 
-from ageb_alignment.assets import census, metropoli, framework, geometry, gcp
+from ageb_alignment.assets import census, metropoli, framework, geometry, translate
 from ageb_alignment.assets.census_initial import inegi as census_initial_inegi
 from ageb_alignment.assets.census_initial import iter as census_initial_iter
 from ageb_alignment.assets.census_initial import scince as census_initial_scince
@@ -10,6 +10,8 @@ from ageb_alignment.assets.zones import shaped as zones_shaped
 from ageb_alignment.assets.zones import replaced as zones_replaced
 from ageb_alignment.assets.zones import extended as zones_extended
 
+from ageb_alignment.assets.gcp import initial as gcp_initial
+from ageb_alignment.assets.gcp import final as gcp_final
 
 from ageb_alignment.jobs import (
     generate_framework_job,
@@ -17,7 +19,7 @@ from ageb_alignment.jobs import (
     fix_zones_job,
 )
 
-from ageb_alignment.managers import DataFrameIOManager
+from ageb_alignment.managers import DataFrameIOManager, PathIOManager
 
 from ageb_alignment.resources import (
     AgebDictResource,
@@ -66,7 +68,10 @@ scince_assets = load_assets_from_modules([census_initial_scince], group_name="sc
 geometry_assets = load_assets_from_package_module(geometry, group_name="geometry")
 
 
-gcp_assets = load_assets_from_package_module(gcp, group_name="gcp")
+gcp_initial_assets = load_assets_from_modules([gcp_initial], group_name="gcp_initial")
+gcp_final_assets = load_assets_from_modules([gcp_final], group_name="gcp_final")
+
+translate_assets = load_assets_from_modules([translate], group_name="translate")
 
 
 ageb_assets = load_assets_from_modules(
@@ -117,6 +122,9 @@ gpkg_manager = DataFrameIOManager(path_resource=path_resource, extension=".gpkg"
 geojson_manager = DataFrameIOManager(path_resource=path_resource, extension=".geojson")
 points_manager = DataFrameIOManager(path_resource=path_resource, extension=".points")
 
+path_geojson_manager = PathIOManager(path_resource=path_resource, extension=".geojson")
+path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg")
+
 
 # Definition
 defs = Definitions(
@@ -127,14 +135,16 @@ defs = Definitions(
     + iter_assets
     + inegi_assets
     + scince_assets
-    + gcp_assets
+    + gcp_initial_assets
+    + gcp_final_assets
     + zones_initial_assets
     + zones_shaped_assets
     + zones_replaced_assets
     + zones_extended_assets
     + municipality_assets
     + state_assets
-    + metropoli_assets,
+    + metropoli_assets
+    + translate_assets,
     resources={
         "path_resource": path_resource,
         "overlap_resource": overlap_resource,
@@ -144,6 +154,8 @@ defs = Definitions(
         "gpkg_manager": gpkg_manager,
         "geojson_manager": geojson_manager,
         "points_manager": points_manager,
+        "path_geojson_manager": path_geojson_manager,
+        "path_gpkg_manager": path_gpkg_manager,
     },
     jobs=[generate_framework_job, generate_gcp_2000_job, fix_zones_job],
 )

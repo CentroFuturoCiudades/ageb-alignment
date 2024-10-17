@@ -5,7 +5,7 @@ import geopandas as gpd
 
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource, PreferenceResource
-from dagster import asset, AssetDep, AssetExecutionContext
+from dagster import asset, AssetIn, AssetExecutionContext
 from pathlib import Path
 
 
@@ -13,7 +13,12 @@ def zone_agebs_shaped_factory(year: int) -> asset:
     @asset(
         name=str(year),
         key_prefix=["zone_agebs", "shaped"],
-        deps=[AssetDep(["zone_agebs", "replaced", str(year)])],
+        ins={
+            "ageb_path": AssetIn(
+                key=["zone_agebs", "replaced", str(year)],
+                input_manager_key="path_geojson_manager",
+            )
+        },
         partitions_def=zone_partitions,
         io_manager_key="gpkg_manager",
     )
@@ -21,13 +26,10 @@ def zone_agebs_shaped_factory(year: int) -> asset:
         context: AssetExecutionContext,
         path_resource: PathResource,
         preference_resource: PreferenceResource,
+        ageb_path: Path,
     ) -> gpd.GeoDataFrame:
         zone = context.partition_key
-        (dep_key,) = context.assets_def.asset_deps[context.asset_key]
-
         out_root_path = Path(path_resource.out_path)
-
-        in_path = out_root_path / "/".join(dep_key.path) / f"{zone}.geojson"
 
         out_dir = out_root_path / "/".join(context.asset_key.path)
         out_dir.mkdir(exist_ok=True, parents=True)
@@ -46,7 +48,7 @@ def zone_agebs_shaped_factory(year: int) -> asset:
                 "npx",
                 "mapshaper",
                 "-i",
-                f"{quote}{in_path}{quote}",
+                f"{quote}{ageb_path}{quote}",
                 "-clean",
                 "-o",
                 f"{quote}{out_path_json}{quote}",
@@ -55,7 +57,7 @@ def zone_agebs_shaped_factory(year: int) -> asset:
         )
 
         df = gpd.read_file(out_path_json)
-        df_orig = gpd.read_file(in_path)
+        df_orig = gpd.read_file(ageb_path)
 
         os.remove(out_path_json)
 

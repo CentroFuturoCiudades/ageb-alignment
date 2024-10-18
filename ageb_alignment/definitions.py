@@ -1,14 +1,14 @@
 import toml
 
-from ageb_alignment.assets import metropoli, framework, geometry, translate, census
-
-from ageb_alignment.assets.zones import initial as zones_initial
-from ageb_alignment.assets.zones import shaped as zones_shaped
-from ageb_alignment.assets.zones import replaced as zones_replaced
-from ageb_alignment.assets.zones import extended as zones_extended
-
-from ageb_alignment.assets.gcp import initial as gcp_initial
-from ageb_alignment.assets.gcp import final as gcp_final
+from ageb_alignment.assets import (
+    census,
+    framework,
+    gcp,
+    geometry,
+    metropoli,
+    translate,
+    zones,
+)
 
 
 # from ageb_alignment.jobs import (
@@ -42,24 +42,7 @@ warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 # Assets
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
-
-
-zones_initial_assets = load_assets_from_modules([zones_initial], group_name="zones")
-zones_shaped_assets = load_assets_from_modules([zones_shaped], group_name="mapshaper")
-zones_replaced_assets = load_assets_from_modules(
-    [zones_replaced], group_name="replacement"
-)
-zones_extended_assets = load_assets_from_modules(
-    [zones_extended], group_name="extended"
-)
-
-
 geometry_assets = load_assets_from_package_module(geometry, group_name="geometry")
-
-
-gcp_initial_assets = load_assets_from_modules([gcp_initial], group_name="gcp_initial")
-gcp_final_assets = load_assets_from_modules([gcp_final], group_name="gcp_final")
-
 translate_assets = load_assets_from_modules([translate], group_name="translate")
 
 
@@ -101,15 +84,7 @@ path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg"
 # Definition
 definitions = Definitions.merge(
     Definitions(
-        assets=geometry_assets
-        + gcp_initial_assets
-        + gcp_final_assets
-        + zones_initial_assets
-        + zones_shaped_assets
-        + zones_replaced_assets
-        + zones_extended_assets
-        + metropoli_assets
-        + translate_assets,
+        assets=geometry_assets + metropoli_assets + translate_assets,
         resources={
             "path_resource": path_resource,
             "overlap_resource": overlap_resource,
@@ -128,5 +103,7 @@ definitions = Definitions.merge(
         ],
     ),
     census.defs,
+    gcp.defs,
     framework.defs,
+    zones.defs,
 )

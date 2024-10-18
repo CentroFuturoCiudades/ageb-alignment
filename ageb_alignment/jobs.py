@@ -22,7 +22,7 @@ generate_framework_job = define_asset_job(
 
 
 fix_zones_job = define_asset_job(
-    "fix_zones",
+    "generate_zones",
     [
         "++zone_agebs/shaped/1990",
         "++zone_agebs/shaped/2000",
@@ -31,6 +31,6 @@ fix_zones_job = define_asset_job(
     ],
 )
 
-generate_gcp_2000_job = define_asset_job(
+generate_initial_gcp_job = define_asset_job(
     "generate_gcp", ["+gcp/initial/1990", "+gcp/initial/2000"]
 )

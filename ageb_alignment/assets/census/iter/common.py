@@ -1,8 +1,11 @@
 import pandas as pd
 
-from dagster import graph_multi_asset, op, AssetOut
+from dagster import graph_multi_asset, op, AssetOut, OpExecutionContext, Out, Output
 from pathlib import Path
 from typing import Callable
+
+
+FIELD_NAMES = ("state", "mun", "loc")
 
 
 @op
@@ -61,22 +64,29 @@ def load_census_iter_2010_2020(census_path: Path) -> pd.DataFrame:
     return census
 
 
+@op(out={name: Out(is_required=False) for name in FIELD_NAMES})
+def census_dispatcher(context: OpExecutionContext, census_iter: pd.DataFrame):
+    if "state" in context.selected_output_names:
+        yield Output(get_census_state(census_iter), output_name="state")
+    if "mun" in context.selected_output_names:
+        yield Output(get_census_mun(census_iter), output_name="mun")
+    if "loc" in context.selected_output_names:
+        yield Output(get_census_loc(census_iter), output_name="loc")
+
+
 # pylint: disable=no-value-for-parameter
 def iter_factory(year: int, loading_func: Callable):
     @graph_multi_asset(
         name=f"census_{year}",
         outs={
             name: AssetOut(key=[str(year), name], group_name="asdasd")
-            for name in ("state", "mun", "loc")
+            for name in FIELD_NAMES
         },
         group_name=f"census_{year}",
+        can_subset=True,
     )
     def _asset():
-        census_iter = loading_func()
-        return {
-            "state": get_census_state(census_iter),
-            "mun": get_census_mun(census_iter),
-            "loc": get_census_loc(census_iter),
-        }
+        state, mun, loc = census_dispatcher(loading_func())
+        return {"state": state, "mun": mun, "loc": loc}
 
     return _asset

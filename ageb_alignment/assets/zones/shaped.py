@@ -10,12 +10,18 @@ from pathlib import Path
 
 
 def zone_agebs_shaped_factory(year: int) -> asset:
+    key_infix = None
+    if year in (1990, 2000):
+        key_infix = "replaced"
+    elif year in (2010, 2020):
+        key_infix = "initial"
+
     @asset(
         name=str(year),
         key_prefix=["zone_agebs", "shaped"],
         ins={
             "ageb_path": AssetIn(
-                key=["zone_agebs", "replaced", str(year)],
+                key=["zone_agebs", key_infix, str(year)],
                 input_manager_key="path_geojson_manager",
             )
         },

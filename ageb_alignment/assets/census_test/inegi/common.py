@@ -52,13 +52,10 @@ def load_census_inegi(census_path: Path) -> pd.DataFrame:
     return census
 
 
-def census_inegi_factory(year: int) -> asset:
-    @asset(name=str(year), key_prefix="inegi")
+def inegi_factory(year: int):
+    @asset(name="ageb", key_prefix=str(year), group_name=f"census_{year}")
     def _asset(path_resource: PathResource) -> pd.DataFrame:
-        census_path = Path(path_resource.raw_path) / f"census/INEGI/{year}"
-        return load_census_inegi(census_path)
+        fpath = Path(path_resource.raw_path) / f"census/INEGI/{year}"
+        return load_census_inegi(fpath)
 
     return _asset
-
-
-census_inegi_assets = [census_inegi_factory(year) for year in (2010, 2020)]

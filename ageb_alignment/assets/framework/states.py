@@ -1,6 +1,7 @@
 import geopandas as gpd
+import pandas as pd
 
-from ageb_alignment.types import CensusTuple, GeometryTuple
+from ageb_alignment.types import GeometryTuple
 from dagster import asset, AssetIn
 
 
@@ -24,20 +25,20 @@ def states_2000(geometry_2000: GeometryTuple) -> gpd.GeoDataFrame:
     name="2010",
     key_prefix=["framework", "states"],
     ins={
-        "census_2010": AssetIn(key=["census", "2010"]),
+        "state_2010": AssetIn(key=["2010", "state"]),
         "geometry_2010": AssetIn(key=["geometry", "2010"]),
     },
     io_manager_key="gpkg_manager",
 )
 def states_2010(
-    geometry_2010: GeometryTuple, census_2010: CensusTuple
+    geometry_2010: GeometryTuple, state_2010: pd.DataFrame
 ) -> gpd.GeoDataFrame:
     merged = (
         geometry_2010.ent.drop(columns=["OID", "NOM_ENT"])
         .assign(CVE_ENT=lambda df: df.CVE_ENT.astype(int))
         .set_index("CVE_ENT")
         .sort_index()
-        .join(census_2010.ent)
+        .join(state_2010)
     )
     return merged
 
@@ -46,19 +47,19 @@ def states_2010(
     name="2020",
     key_prefix=["framework", "states"],
     ins={
-        "census_2020": AssetIn(key=["census", "2020"]),
+        "state_2020": AssetIn(key=["2020", "state"]),
         "geometry_2020": AssetIn(key=["geometry", "2020"]),
     },
     io_manager_key="gpkg_manager",
 )
 def states_2020(
-    geometry_2020: GeometryTuple, census_2020: CensusTuple
+    geometry_2020: GeometryTuple, state_2020: pd.DataFrame
 ) -> gpd.GeoDataFrame:
     merged = (
         geometry_2020.ent.drop(columns=["NOMGEO", "CVEGEO"])
         .assign(CVE_ENT=lambda df: df.CVE_ENT.astype(int))
         .set_index("CVE_ENT")
         .sort_index()
-        .join(census_2020.ent)
+        .join(state_2020)
     )
     return merged

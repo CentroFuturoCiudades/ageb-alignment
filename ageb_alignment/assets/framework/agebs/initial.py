@@ -1,7 +1,8 @@
 import geopandas as gpd
+import pandas as pd
 
 from ageb_alignment.resources import PathResource
-from ageb_alignment.types import GeometryTuple, CensusTuple
+from ageb_alignment.types import GeometryTuple
 from dagster import asset, AssetIn
 from pathlib import Path
 
@@ -10,18 +11,18 @@ from pathlib import Path
     name="1990",
     key_prefix="agebs_initial",
     ins={
-        "census_1990": AssetIn(key=["census", "1990"]),
+        "ageb_1990": AssetIn(key=["1990", "ageb"]),
         "geometry_1990": AssetIn(key=["geometry", "1990"]),
     },
 )
 def agebs_1990_initial(
-    path_resource: PathResource, geometry_1990: GeometryTuple, census_1990: CensusTuple
+    path_resource: PathResource, geometry_1990: GeometryTuple, ageb_1990: pd.DataFrame
 ) -> gpd.GeoDataFrame:
     out_path = Path(path_resource.out_path) / "framework/agebs"
     out_path.mkdir(exist_ok=True, parents=True)
 
     merged = (
-        geometry_1990.ageb.join(census_1990.ageb, how="left")
+        geometry_1990.ageb.join(ageb_1990, how="left")
         .fillna(0)
         .assign(POBTOT=lambda df: df.POBTOT.astype(int))
         .explode()
@@ -34,17 +35,17 @@ def agebs_1990_initial(
     name="2000",
     key_prefix="agebs_initial",
     ins={
-        "census_2000": AssetIn(key=["census", "2000"]),
+        "ageb_2000": AssetIn(key=["2000", "ageb"]),
         "geometry_2000": AssetIn(key=["geometry", "2000"]),
     },
 )
 def agebs_2000_initial(
-    path_resource: PathResource, geometry_2000: GeometryTuple, census_2000: CensusTuple
+    path_resource: PathResource, geometry_2000: GeometryTuple, ageb_2000: pd.DataFrame
 ) -> gpd.GeoDataFrame:
     out_path = Path(path_resource.out_path) / "framework/agebs"
     out_path.mkdir(exist_ok=True, parents=True)
 
-    merged = geometry_2000.ageb.join(census_2000.ageb, how="left").sort_index()
+    merged = geometry_2000.ageb.join(ageb_2000, how="left").sort_index()
     return merged
 
 
@@ -52,12 +53,12 @@ def agebs_2000_initial(
     name="2010",
     key_prefix="agebs_initial",
     ins={
-        "census_2010": AssetIn(key=["census", "2010"]),
+        "ageb_2010": AssetIn(key=["2010", "ageb"]),
         "geometry_2010": AssetIn(key=["geometry", "2010"]),
     },
 )
 def agebs_2010_initial(
-    path_resource: PathResource, geometry_2010: GeometryTuple, census_2010: CensusTuple
+    path_resource: PathResource, geometry_2010: GeometryTuple, ageb_2010: pd.DataFrame
 ) -> gpd.GeoDataFrame:
     out_path = Path(path_resource.out_path) / "framework/agebs"
     out_path.mkdir(exist_ok=True, parents=True)
@@ -80,7 +81,7 @@ def agebs_2010_initial(
             CVE_AGEB=lambda df: df.index.str[9:],
         )
         .sort_index()
-        .join(census_2010.ageb, how="left")
+        .join(ageb_2010, how="left")
         .assign(POBTOT=lambda df: df.POBTOT.fillna(0).astype(int))
     )
     return merged
@@ -90,12 +91,12 @@ def agebs_2010_initial(
     name="2020",
     key_prefix="agebs_initial",
     ins={
-        "census_2020": AssetIn(key=["census", "2020"]),
+        "ageb_2020": AssetIn(key=["2020", "ageb"]),
         "geometry_2020": AssetIn(key=["geometry", "2020"]),
     },
 )
 def agebs_2020_initial(
-    path_resource: PathResource, geometry_2020: GeometryTuple, census_2020: CensusTuple
+    path_resource: PathResource, geometry_2020: GeometryTuple, ageb_2020: pd.DataFrame
 ) -> gpd.GeoDataFrame:
     out_path = Path(path_resource.out_path) / "framework/agebs"
     out_path.mkdir(exist_ok=True, parents=True)
@@ -108,6 +109,6 @@ def agebs_2020_initial(
             CVE_LOC=lambda df: df.CVE_LOC.astype(int),
         )
         .sort_index()
-        .join(census_2020.ageb, how="left")
+        .join(ageb_2020, how="left")
     )
     return merged

@@ -1,9 +1,6 @@
 import toml
 
-from ageb_alignment.assets import census, metropoli, framework, geometry, translate
-from ageb_alignment.assets.census_initial import inegi as census_initial_inegi
-from ageb_alignment.assets.census_initial import iter as census_initial_iter
-from ageb_alignment.assets.census_initial import scince as census_initial_scince
+from ageb_alignment.assets import metropoli, framework, geometry, translate, census_test
 
 from ageb_alignment.assets.zones import initial as zones_initial
 from ageb_alignment.assets.zones import shaped as zones_shaped
@@ -13,18 +10,18 @@ from ageb_alignment.assets.zones import extended as zones_extended
 from ageb_alignment.assets.gcp import initial as gcp_initial
 from ageb_alignment.assets.gcp import final as gcp_final
 
-from ageb_alignment.jobs import (
-    generate_framework_job,
-    generate_gcp_2000_job,
-    fix_zones_job,
-)
+
+# from ageb_alignment.jobs import (
+#     generate_framework_job,
+#     generate_gcp_2000_job,
+#     fix_zones_job,
+# )
 
 from ageb_alignment.managers import DataFrameIOManager, PathIOManager
 
 from ageb_alignment.resources import (
     AgebDictResource,
     AgebListResource,
-    AgebNestedDictResource,
     PathResource,
     PreferenceResource,
 )
@@ -55,14 +52,6 @@ zones_replaced_assets = load_assets_from_modules(
 zones_extended_assets = load_assets_from_modules(
     [zones_extended], group_name="extended"
 )
-
-
-census_assets = load_assets_from_modules([census], group_name="census")
-
-
-iter_assets = load_assets_from_modules([census_initial_iter], group_name="iter")
-inegi_assets = load_assets_from_modules([census_initial_inegi], group_name="inegi")
-scince_assets = load_assets_from_modules([census_initial_scince], group_name="scince")
 
 
 geometry_assets = load_assets_from_package_module(geometry, group_name="geometry")
@@ -111,11 +100,6 @@ preference_resource = PreferenceResource(
     raise_on_deleted_geometries=preferences["raise_on_deleted_geometries"]
 )
 
-replacement_list = {}
-with open("./configs/replacement/1990_2000.toml", "r", encoding="utf8") as f:
-    replacement_list["ageb_1990"] = toml.load(f)
-replacement_resource = AgebNestedDictResource(**replacement_list)
-
 
 # Managers
 gpkg_manager = DataFrameIOManager(path_resource=path_resource, extension=".gpkg")
@@ -127,35 +111,37 @@ path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg"
 
 
 # Definition
-defs = Definitions(
-    assets=geometry_assets
-    + ageb_assets
-    + ageb_initial_assets
-    + census_assets
-    + iter_assets
-    + inegi_assets
-    + scince_assets
-    + gcp_initial_assets
-    + gcp_final_assets
-    + zones_initial_assets
-    + zones_shaped_assets
-    + zones_replaced_assets
-    + zones_extended_assets
-    + municipality_assets
-    + state_assets
-    + metropoli_assets
-    + translate_assets,
-    resources={
-        "path_resource": path_resource,
-        "overlap_resource": overlap_resource,
-        "remove_from_mun_resource": remove_from_mun_resource,
-        "preference_resource": preference_resource,
-        "replacement_resource": replacement_resource,
-        "gpkg_manager": gpkg_manager,
-        "geojson_manager": geojson_manager,
-        "points_manager": points_manager,
-        "path_geojson_manager": path_geojson_manager,
-        "path_gpkg_manager": path_gpkg_manager,
-    },
-    jobs=[generate_framework_job, generate_gcp_2000_job, fix_zones_job],
+definitions = Definitions.merge(
+    Definitions(
+        assets=geometry_assets
+        + ageb_assets
+        + ageb_initial_assets
+        + gcp_initial_assets
+        + gcp_final_assets
+        + zones_initial_assets
+        + zones_shaped_assets
+        + zones_replaced_assets
+        + zones_extended_assets
+        + municipality_assets
+        + state_assets
+        + metropoli_assets
+        + translate_assets,
+        resources={
+            "path_resource": path_resource,
+            "overlap_resource": overlap_resource,
+            "remove_from_mun_resource": remove_from_mun_resource,
+            "preference_resource": preference_resource,
+            "gpkg_manager": gpkg_manager,
+            "geojson_manager": geojson_manager,
+            "points_manager": points_manager,
+            "path_geojson_manager": path_geojson_manager,
+            "path_gpkg_manager": path_gpkg_manager,
+        },
+        jobs=[
+            # generate_framework_job,
+            # generate_gcp_2000_job,
+            # fix_zones_job
+        ],
+    ),
+    census_test.defs,
 )

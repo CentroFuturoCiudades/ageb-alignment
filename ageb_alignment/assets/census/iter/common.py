@@ -78,10 +78,7 @@ def census_dispatcher(context: OpExecutionContext, census_iter: pd.DataFrame):
 def iter_factory(year: int, loading_func: Callable):
     @graph_multi_asset(
         name=f"census_{year}",
-        outs={
-            name: AssetOut(key=[str(year), name], group_name="asdasd")
-            for name in FIELD_NAMES
-        },
+        outs={name: AssetOut(key=[str(year), name]) for name in FIELD_NAMES},
         group_name=f"census_{year}",
         can_subset=True,
     )

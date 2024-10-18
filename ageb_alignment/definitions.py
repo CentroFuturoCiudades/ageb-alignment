@@ -63,18 +63,6 @@ gcp_final_assets = load_assets_from_modules([gcp_final], group_name="gcp_final")
 translate_assets = load_assets_from_modules([translate], group_name="translate")
 
 
-ageb_assets = load_assets_from_modules(
-    [framework.agebs_initial], group_name="agebs_initial"
-)
-ageb_initial_assets = load_assets_from_modules(
-    [framework.agebs_fixed], group_name="agebs"
-)
-municipality_assets = load_assets_from_modules(
-    [framework.municipalities], group_name="municipalities"
-)
-state_assets = load_assets_from_modules([framework.states], group_name="states")
-
-
 # Resources
 path_resource = PathResource(
     raw_path=EnvVar("RAW_PATH"),
@@ -114,16 +102,12 @@ path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg"
 definitions = Definitions.merge(
     Definitions(
         assets=geometry_assets
-        + ageb_assets
-        + ageb_initial_assets
         + gcp_initial_assets
         + gcp_final_assets
         + zones_initial_assets
         + zones_shaped_assets
         + zones_replaced_assets
         + zones_extended_assets
-        + municipality_assets
-        + state_assets
         + metropoli_assets
         + translate_assets,
         resources={
@@ -144,5 +128,5 @@ definitions = Definitions.merge(
         ],
     ),
     census.defs,
-    census_test.defs,
+    framework.defs,
 )

@@ -1,6 +1,6 @@
 import toml
 
-from ageb_alignment.assets import metropoli, framework, geometry, translate, census_test
+from ageb_alignment.assets import metropoli, framework, geometry, translate, census
 
 from ageb_alignment.assets.zones import initial as zones_initial
 from ageb_alignment.assets.zones import shaped as zones_shaped
@@ -143,5 +143,6 @@ definitions = Definitions.merge(
             # fix_zones_job
         ],
     ),
+    census.defs,
     census_test.defs,
 )

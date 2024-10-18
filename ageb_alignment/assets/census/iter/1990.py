@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ageb_alignment.assets.census_test.iter.common import iter_factory
+from ageb_alignment.assets.census.iter.common import iter_factory
 from ageb_alignment.resources import PathResource
 from dagster import op
 from pathlib import Path

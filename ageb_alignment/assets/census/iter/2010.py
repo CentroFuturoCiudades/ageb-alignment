@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ageb_alignment.assets.census_test.iter.common import (
+from ageb_alignment.assets.census.iter.common import (
     load_census_iter_2010_2020,
     iter_factory,
 )

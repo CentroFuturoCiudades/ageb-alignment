@@ -64,7 +64,7 @@ def load_census_iter_2010_2020(census_path: Path) -> pd.DataFrame:
 # pylint: disable=no-value-for-parameter
 def iter_factory(year: int, loading_func: Callable):
     @graph_multi_asset(
-        name=f"census_test_{year}",
+        name=f"census_{year}",
         outs={
             name: AssetOut(key=[str(year), name], group_name="asdasd")
             for name in ("state", "mun", "loc")

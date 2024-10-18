@@ -1,5 +1,4 @@
 import geopandas as gpd
-import pandas as pd
 
 from typing import NamedTuple, Optional
 

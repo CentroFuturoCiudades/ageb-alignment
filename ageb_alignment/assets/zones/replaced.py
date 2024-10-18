@@ -66,6 +66,10 @@ def zones_replaced_2000(
     agebs_new: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     zone = context.partition_key
+
+    agebs_old = agebs_old.set_index("CVEGEO")
+    agebs_new = agebs_new.set_index("CVEGEO")
+
     if zone in replace_2000:
         replace_list = replace_2000[zone]
         agebs_replaced = replace_geoms(agebs_old, agebs_new, replace_list)
@@ -91,6 +95,10 @@ def zones_replaced_1990(
     agebs_new: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     zone = context.partition_key
+
+    agebs_old = agebs_old.set_index("CVEGEO")
+    agebs_new = agebs_new.set_index("CVEGEO")
+
     if zone in replace_1990:
         replace_list = replace_1990[zone]
         agebs_replaced = replace_geoms(agebs_old, agebs_new, replace_list)

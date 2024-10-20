@@ -15,7 +15,13 @@ networkx = "^3.3"
 openpyxl = "^3.1.5"
 fiona = "^1.10.1"
 toml = "^0.10.2"
-gdal = { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.9.22/GDAL-3.9.2-cp311-cp311-win_amd64.whl" }
+gdal = [
+    { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp310-cp310-win_amd64.whl", platform = "win32", python = ">=3.10,<3.11"},
+    { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp311-cp311-win_amd64.whl", platform = "win32", python = ">=3.11,<3.12"},
+    { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp312-cp312-win_amd64.whl", platform = "win32", python = ">=3.12,<3.13"},
+    { version = "3.9.2", platform = "linux", source = "pypi" },
+    { version = "3.9.2", platform = "darwin", source = "pypi" }
+]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"

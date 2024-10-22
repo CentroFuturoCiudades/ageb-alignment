@@ -1,9 +1,12 @@
 from ageb_alignment.assets.framework import municipalities, states
 
-import ageb_alignment.assets.framework.agebs.initial as agebs_initial
-import ageb_alignment.assets.framework.agebs.fixed as agebs_fixed
+import ageb_alignment.assets.framework.agebs as agebs
 
-from dagster import load_assets_from_modules, Definitions
+from dagster import (
+    load_assets_from_modules,
+    load_assets_from_package_module,
+    Definitions,
+)
 
 
 defs = Definitions(
@@ -12,9 +15,6 @@ defs = Definitions(
             [municipalities], group_name="framework_municipalities"
         )
         + load_assets_from_modules([states], group_name="framework_states")
-        + load_assets_from_modules(
-            [agebs_initial], group_name="framework_agebs_initial"
-        )
-        + load_assets_from_modules([agebs_fixed], group_name="framework_agebs")
+        + load_assets_from_package_module(agebs, group_name="framework_agebs")
     )
 )

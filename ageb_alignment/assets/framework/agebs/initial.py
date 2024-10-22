@@ -3,24 +3,14 @@ import pandas as pd
 
 from ageb_alignment.resources import PathResource
 from ageb_alignment.types import GeometryTuple
-from dagster import asset, AssetIn
+from dagster import asset, op, AssetIn
 from pathlib import Path
 
 
-@asset(
-    name="1990",
-    key_prefix="agebs_initial",
-    ins={
-        "ageb_1990": AssetIn(key=["1990", "ageb"]),
-        "geometry_1990": AssetIn(key=["geometry", "1990"]),
-    },
-)
-def agebs_1990_initial(
-    path_resource: PathResource, geometry_1990: GeometryTuple, ageb_1990: pd.DataFrame
+@op
+def merge_1990_agebs(
+    geometry_1990: GeometryTuple, ageb_1990: pd.DataFrame
 ) -> gpd.GeoDataFrame:
-    out_path = Path(path_resource.out_path) / "framework/agebs"
-    out_path.mkdir(exist_ok=True, parents=True)
-
     merged = (
         geometry_1990.ageb.join(ageb_1990, how="left")
         .fillna(0)

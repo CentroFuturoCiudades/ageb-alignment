@@ -1,7 +1,11 @@
 import geopandas as gpd
 import numpy as np
 
-from ageb_alignment.configs.replacement import replace_1990, replace_2000
+from ageb_alignment.configs.replacement import (
+    replace_1990_2000,
+    replace_2000_2010,
+    replace_1990_2010,
+)
 from ageb_alignment.partitions import zone_partitions
 from dagster import asset, AssetExecutionContext, AssetIn
 
@@ -70,9 +74,9 @@ def zones_replaced_2000(
     agebs_old = agebs_old.set_index("CVEGEO")
     agebs_new = agebs_new.set_index("CVEGEO")
 
-    if zone in replace_2000:
-        replace_list = replace_2000[zone]
-        agebs_replaced = replace_geoms(agebs_old, agebs_new, replace_list)
+    if zone in replace_2000_2010:
+        agebs_replaced = replace_geoms(agebs_old, agebs_new, replace_2000_2010[zone])
+        context.log.info(f"Replaced {zone} with 2010 AGEBs.")
     else:
         agebs_replaced = agebs_old
 
@@ -83,33 +87,35 @@ def zones_replaced_2000(
     name="1990",
     key_prefix=["zone_agebs", "replaced"],
     ins={
-        "agebs_old": AssetIn(["zone_agebs", "initial", "1990"]),
-        "agebs_new": AssetIn(["zone_agebs", "replaced", "2000"]),
+        "agebs_1990": AssetIn(["zone_agebs", "initial", "1990"]),
+        "agebs_2000": AssetIn(["zone_agebs", "initial", "2000"]),
+        "agebs_2010": AssetIn(["zone_agebs", "initial", "2010"]),
     },
     partitions_def=zone_partitions,
     io_manager_key="geojson_manager",
 )
 def zones_replaced_1990(
     context: AssetExecutionContext,
-    agebs_old: gpd.GeoDataFrame,
-    agebs_new: gpd.GeoDataFrame,
+    agebs_1990: gpd.GeoDataFrame,
+    agebs_2000: gpd.GeoDataFrame,
+    agebs_2010: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     zone = context.partition_key
 
-    agebs_old = agebs_old.set_index("CVEGEO")
-    agebs_new = agebs_new.set_index("CVEGEO")
+    agebs_1990 = agebs_1990.set_index("CVEGEO")
+    agebs_2000 = agebs_2000.set_index("CVEGEO")
+    agebs_2010 = agebs_2010.set_index("CVEGEO")
 
-    if zone in replace_1990:
-        replace_list = replace_1990[zone]
-        agebs_replaced = replace_geoms(agebs_old, agebs_new, replace_list)
+    if zone in replace_1990_2010:
+        agebs_replaced = replace_geoms(agebs_1990, agebs_2010, replace_1990_2010[zone])
+        context.log.info(f"Replaced {zone} with 2010 AGEBs.")
+    elif zone in replace_1990_2000:
+        agebs_replaced = replace_geoms(agebs_1990, agebs_2000, replace_1990_2000[zone])
+        context.log.info(f"Replaced {zone} with 2000 AGEBs.")
     else:
-        agebs_replaced = agebs_old
+        agebs_replaced = agebs_1990
 
     return agebs_replaced
 
 
 zones_replace_assets = [zones_replaced_1990, zones_replaced_2000]
-
-# zones_replaced_assets = [
-#     zones_replaced_factory(year, replace_dict) for year, replace_dict in zip((1990, 2000, 2010, 2020), (replace_1990, replace_2000, None, None))
-# ]

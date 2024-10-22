@@ -45,7 +45,7 @@ class DataFrameIOManager(BaseManager):
         out_path.parent.mkdir(exist_ok=True, parents=True)
 
         if self._is_geodataframe():
-            obj.to_file(out_path)
+            obj.to_file(out_path, mode="w")
         else:
             obj.to_csv(out_path, index=False)
 

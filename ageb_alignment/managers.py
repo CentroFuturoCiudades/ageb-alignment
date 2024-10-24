@@ -33,7 +33,9 @@ class PathIOManager(BaseManager):
         pass
 
     def load_input(self, context: InputContext) -> Path:
-        return self._get_path(context)
+        path = self._get_path(context)
+        assert path.exists()
+        return path
 
 
 class DataFrameIOManager(BaseManager):

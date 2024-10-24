@@ -303,3 +303,4 @@ dagster/*
 !dagster/dagster.yaml
 
 main.ipynb
+.DS_STORE

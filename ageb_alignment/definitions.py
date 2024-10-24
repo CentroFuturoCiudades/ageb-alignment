@@ -45,7 +45,7 @@ warnings.filterwarnings("ignore", category=ExperimentalWarning)
 # Assets
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
 geometry_assets = load_assets_from_package_module(geometry, group_name="geometry")
-translate_assets = load_assets_from_modules([translate], group_name="translate")
+translate_assets = load_assets_from_package_module(translate, group_name="translate")
 
 
 # Resources

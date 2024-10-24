@@ -56,7 +56,7 @@ def build_common_replacement_map(rl_1990_2000: list, rl_2000_2010: list) -> dict
     return ST
 
 
-def build_all_replacements(map_1990: dict, map_2000: dict):
+def build_all_replacements(map_1990: dict, map_2000: dict) -> dict:
     zones_1990 = set(map_1990.keys())
     zones_2000 = set(map_2000.keys())
     common_zones = zones_1990.intersection(zones_2000)

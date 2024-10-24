@@ -26,8 +26,8 @@ fix_zones_job = define_asset_job(
     [
         "++zone_agebs/shaped/1990",
         "++zone_agebs/shaped/2000",
-        "++zone_agebs/shaped/2010",
-        "++zone_agebs/shaped/2020",
+        "+zone_agebs/shaped/2010",
+        "+zone_agebs/shaped/2020",
     ],
 )
 

@@ -18,7 +18,7 @@ def gcp_final_factory(year: int) -> asset:
         context: AssetExecutionContext, path_resource: PathResource
     ) -> np.ndarray:
         gcp_path = (
-            Path(path_resource.intermediate_path)
+            Path(path_resource.manual_path)
             / f"gcp/{year}/{context.partition_key}.points"
         )
         points = pd.read_csv(

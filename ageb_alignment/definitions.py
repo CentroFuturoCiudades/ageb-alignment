@@ -1,3 +1,4 @@
+import os
 import toml
 
 from ageb_alignment.assets import (
@@ -34,6 +35,7 @@ from dagster import (
     ExperimentalWarning,
 )
 
+
 # Suppress experimental warnings
 import warnings
 
@@ -49,8 +51,8 @@ translate_assets = load_assets_from_modules([translate], group_name="translate")
 # Resources
 path_resource = PathResource(
     raw_path=EnvVar("RAW_PATH"),
+    manual_path=os.path.abspath("./manual_files"),
     out_path=EnvVar("OUT_PATH"),
-    intermediate_path=EnvVar("INTERMEDIATE_PATH"),
 )
 
 with open("./configs/overlaps.toml", "r", encoding="utf8") as f:

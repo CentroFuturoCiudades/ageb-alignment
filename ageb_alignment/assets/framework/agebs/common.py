@@ -17,9 +17,12 @@ from typing import Optional
 
 def load_manual_agebs_factory(year: int) -> OpDefinition:
     @op(name=f"load_manual_agebs_{year}")
-    def _op(path_resource: PathResource) -> Optional[gpd.GeoDataFrame]:
-        manual_path = Path(path_resource.intermediate_path) / f"replacement/{year}.gpkg"
+    def _op(
+        context: OpExecutionContext, path_resource: PathResource
+    ) -> Optional[gpd.GeoDataFrame]:
+        manual_path = Path(path_resource.manual_path) / f"framework_replace/{year}.gpkg"
         if manual_path.exists():
+            context.log.info(f"Loaded framework replace DataFrame for {year}.")
             return gpd.read_file(manual_path).set_index("CVEGEO")
 
     return _op

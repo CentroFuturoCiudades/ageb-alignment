@@ -9,7 +9,7 @@ class PreferenceResource(ConfigurableResource):
 class PathResource(ConfigurableResource):
     raw_path: str
     out_path: str
-    intermediate_path: str
+    manual_path: str
 
 
 class AgebListResource(ConfigurableResource):

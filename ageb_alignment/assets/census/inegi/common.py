@@ -1,7 +1,7 @@
 import pandas as pd
 
 from ageb_alignment.resources import PathResource
-from dagster import asset
+from dagster import asset, AssetsDefinition
 from pathlib import Path
 
 
@@ -52,7 +52,7 @@ def load_census_inegi(census_path: Path) -> pd.DataFrame:
     return census
 
 
-def inegi_factory(year: int):
+def inegi_factory(year: int) -> AssetsDefinition:
     @asset(name="ageb", key_prefix=str(year), group_name=f"census_{year}")
     def _asset(path_resource: PathResource) -> pd.DataFrame:
         fpath = Path(path_resource.raw_path) / f"census/INEGI/{year}"

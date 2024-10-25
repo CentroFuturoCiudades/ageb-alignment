@@ -30,7 +30,7 @@ class BaseManager(ConfigurableIOManager):
 
 class PathIOManager(BaseManager):
     def handle_output(self, context: OutputContext, obj) -> None:
-        pass
+        raise NotImplementedError
 
     def load_input(self, context: InputContext) -> Path:
         path = self._get_path(context)

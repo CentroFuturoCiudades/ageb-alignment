@@ -44,7 +44,7 @@ def translate_geometries_1990(
 # pylint: disable=no-value-for-parameter
 @graph_asset(
     name="1990",
-    key_prefix=["translated"],
+    key_prefix=["zone_agebs", "translated"],
     ins={"ageb_path": AssetIn(key=["zone_agebs", "shaped", "1990"])},
     partitions_def=zone_partitions,
 )

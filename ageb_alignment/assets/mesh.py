@@ -3,8 +3,9 @@ import pandas as pd
 
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource, PreferenceResource
-from dagster import graph_asset, op, AssetIn, BackfillPolicy, In, Out
+from dagster import graph_asset, op, AssetIn, In, Out
 from pathlib import Path
+from typing import assert_never
 
 
 @op
@@ -53,12 +54,25 @@ def reproject_to_mesh(
 
 
 # pylint: disable=no-value-for-parameter
-@graph_asset(
-    name="2020",
-    key_prefix="reprojected",
-    ins={"agebs": AssetIn(key=["zone_agebs", "shaped", "2020"])},
-    partitions_def=zone_partitions,
-)
-def reprojected_2020(agebs: dict[str, gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
-    mesh = load_mesh(agebs)
-    return reproject_to_mesh(mesh, agebs)
+def reprojected_factory(year: int):
+    if year in (1990, 2000):
+        asset_key = "translated"
+    elif year in (2010, 2020):
+        asset_key = "shaped"
+    else:
+        assert_never(year)
+
+    @graph_asset(
+        name=str(year),
+        key_prefix="reprojected",
+        ins={"agebs": AssetIn(key=["zone_agebs", asset_key, str(year)])},
+        partitions_def=zone_partitions,
+    )
+    def _asset(agebs: dict[str, gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
+        mesh = load_mesh(agebs)
+        return reproject_to_mesh(mesh, agebs)
+
+    return _asset
+
+
+reprojected_assets = [reprojected_factory(year) for year in (1990, 2000, 2010, 2020)]

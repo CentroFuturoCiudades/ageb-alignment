@@ -1,12 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from ageb_alignment.resources import PathResource
-from dagster import op, OpDefinition, OpExecutionContext
 from pathlib import Path
+from typing import Callable
 
 
-@op
 def generate_options_str(gcp: np.ndarray) -> str:
     options_str = "-tps -t_srs EPSG:6372 "
     for row in gcp:
@@ -14,13 +12,9 @@ def generate_options_str(gcp: np.ndarray) -> str:
     return options_str
 
 
-def load_final_gcp_factory(year: int) -> OpDefinition:
-    @op(name=f"load_final_gcp_{year}")
-    def _op(context: OpExecutionContext, path_resource: PathResource) -> np.ndarray:
-        gcp_path = (
-            Path(path_resource.manual_path)
-            / f"gcp/{year}/{context.partition_key}.points"
-        )
+def load_final_gcp_factory(year: int) -> Callable:
+    def _op(manual_path: Path, partition_key: str) -> np.ndarray:
+        gcp_path = manual_path / f"gcp/{year}/{partition_key}.points"
         points = pd.read_csv(
             gcp_path, usecols=["sourceX", "sourceY", "mapX", "mapY"], header=1
         )

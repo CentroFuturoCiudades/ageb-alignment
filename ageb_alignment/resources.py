@@ -4,6 +4,7 @@ from typing import Optional
 
 class PreferenceResource(ConfigurableResource):
     raise_on_deleted_geometries: bool
+    mesh_level: int
 
 
 class PathResource(ConfigurableResource):

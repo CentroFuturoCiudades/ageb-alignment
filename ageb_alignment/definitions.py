@@ -70,7 +70,8 @@ remove_from_mun_resource = AgebDictResource(**remove_from_mun_list)
 with open("./configs/preferences.toml", "r", encoding="utf8") as f:
     preferences = toml.load(f)
 preference_resource = PreferenceResource(
-    raise_on_deleted_geometries=preferences["raise_on_deleted_geometries"]
+    raise_on_deleted_geometries=preferences["raise_on_deleted_geometries"],
+    mesh_level=preferences["mesh_level"],
 )
 
 

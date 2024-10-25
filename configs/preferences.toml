@@ -1,4 +1,5 @@
 raise_on_deleted_geometries = true
+mesh_level = 9
 
 # [pos_alignment_1990]
 # # replace geometry with target

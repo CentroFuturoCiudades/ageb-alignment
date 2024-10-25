@@ -33,7 +33,7 @@ def translate_geometries_2000(
 # pylint: disable=no-value-for-parameter
 @graph_asset(
     name="2000",
-    key_prefix=["translated"],
+    key_prefix=["zone_agebs", "translated"],
     ins={"ageb_path": AssetIn(["zone_agebs", "shaped", "2000"])},
     partitions_def=zone_partitions,
 )

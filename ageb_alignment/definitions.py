@@ -6,6 +6,7 @@ from ageb_alignment.assets import (
     framework,
     gcp,
     geometry,
+    mesh,
     metropoli,
     translate,
     zones,
@@ -43,6 +44,7 @@ warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 
 # Assets
+mesh_assets = load_assets_from_modules([mesh], group_name="mesh")
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
 geometry_assets = load_assets_from_package_module(geometry, group_name="geometry")
 translate_assets = load_assets_from_package_module(translate, group_name="translate")
@@ -70,7 +72,8 @@ remove_from_mun_resource = AgebDictResource(**remove_from_mun_list)
 with open("./configs/preferences.toml", "r", encoding="utf8") as f:
     preferences = toml.load(f)
 preference_resource = PreferenceResource(
-    raise_on_deleted_geometries=preferences["raise_on_deleted_geometries"]
+    raise_on_deleted_geometries=preferences["raise_on_deleted_geometries"],
+    mesh_level=preferences["mesh_level"],
 )
 
 
@@ -86,7 +89,7 @@ path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg"
 # Definition
 definitions = Definitions.merge(
     Definitions(
-        assets=geometry_assets + metropoli_assets + translate_assets,
+        assets=geometry_assets + metropoli_assets + translate_assets + mesh_assets,
         resources={
             "path_resource": path_resource,
             "overlap_resource": overlap_resource,

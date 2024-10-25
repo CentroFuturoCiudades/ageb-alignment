@@ -6,6 +6,7 @@ from ageb_alignment.assets import (
     framework,
     gcp,
     geometry,
+    mesh,
     metropoli,
     translate,
     zones,
@@ -43,6 +44,7 @@ warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 
 # Assets
+mesh_assets = load_assets_from_modules([mesh], group_name="mesh")
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
 geometry_assets = load_assets_from_package_module(geometry, group_name="geometry")
 translate_assets = load_assets_from_package_module(translate, group_name="translate")
@@ -87,7 +89,7 @@ path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg"
 # Definition
 definitions = Definitions.merge(
     Definitions(
-        assets=geometry_assets + metropoli_assets + translate_assets,
+        assets=geometry_assets + metropoli_assets + translate_assets + mesh_assets,
         resources={
             "path_resource": path_resource,
             "overlap_resource": overlap_resource,

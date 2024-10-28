@@ -1,44 +1,39 @@
-import tempfile
-
 import geopandas as gpd
 
-from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.assets.translate.common import (
     generate_options_str,
-    load_final_gcp_2000,
+    load_final_gcp,
+    translate_geometries_single,
 )
-from dagster import graph_asset, op, AssetIn, In, OpExecutionContext, Out
-from osgeo import gdal
+from ageb_alignment.configs.replacement import replace_2000_2010
+from ageb_alignment.partitions import zone_partitions
+from ageb_alignment.resources import PathResource
+from dagster import asset, AssetExecutionContext, AssetIn
 from pathlib import Path
-
-gdal.UseExceptions()
-
-
-@op(
-    ins={
-        "ageb_path": In(input_manager_key="path_gpkg_manager"),
-    },
-    out=Out(io_manager_key="gpkg_manager"),
-)
-def translate_geometries_2000(
-    context: OpExecutionContext, ageb_path: Path, options: str
-) -> gpd.GeoDataFrame:
-    with tempfile.TemporaryDirectory() as temp_dir:
-        out_path = Path(temp_dir) / f"{context.partition_key}.gpkg"
-        gdal.VectorTranslate(str(out_path), str(ageb_path), options=options)
-        gdf = gpd.read_file(out_path)
-    return gdf
 
 
 # pylint: disable=no-value-for-parameter
-@graph_asset(
+@asset(
     name="2000",
     key_prefix=["zone_agebs", "translated"],
-    ins={"ageb_path": AssetIn(["zone_agebs", "shaped", "2000"])},
+    ins={
+        "ageb_path": AssetIn(
+            ["zone_agebs", "shaped", "2000"], input_manager_key="path_gpkg_manager"
+        )
+    },
     partitions_def=zone_partitions,
+    io_manager_key="gpkg_manager",
 )
-def translated_2000(ageb_path: Path):
-    gcp_2000 = load_final_gcp_2000()
-    options_str = generate_options_str(gcp_2000)
-    translated = translate_geometries_2000(ageb_path, options_str)
+def translated_2000(
+    context: AssetExecutionContext, path_resource: PathResource, ageb_path: Path
+) -> gpd.GeoDataFrame:
+    zone = context.partition_key
+    if zone in replace_2000_2010:
+        translated = gpd.read_file(ageb_path)
+        context.log.info(f"Skipped translation for {zone}.")
+    else:
+        manual_path = Path(path_resource.manual_path)
+        gcp_2000 = load_final_gcp(manual_path / f"gcp/2000/{zone}.points")
+        options_str = generate_options_str(gcp_2000)
+        translated = translate_geometries_single(ageb_path, options_str)
     return translated

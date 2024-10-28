@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 
 from ageb_alignment.partitions import zone_partitions
-from dagster import asset, AssetIn
+from dagster import asset, AssetIn, AssetsDefinition
 
 
 def get_outer_polygon(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -30,7 +30,7 @@ def get_outer_polygon(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return series
 
 
-def zones_extended_factory(year: int) -> asset:
+def zones_extended_factory(year: int) -> AssetsDefinition:
     @asset(
         name=str(year),
         key_prefix="zones_extended",

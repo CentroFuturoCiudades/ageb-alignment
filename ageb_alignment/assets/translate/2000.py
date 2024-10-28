@@ -1,29 +1,15 @@
-import tempfile
-
 import geopandas as gpd
 
 from ageb_alignment.assets.translate.common import (
     generate_options_str,
-    load_final_gcp_2000,
+    load_final_gcp,
+    translate_geometries_single,
 )
 from ageb_alignment.configs.replacement import replace_2000_2010
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource
 from dagster import asset, AssetExecutionContext, AssetIn
-from osgeo import gdal
 from pathlib import Path
-
-gdal.UseExceptions()
-
-
-def translate_geometries_2000(
-    ageb_path: Path, options: str, partition_key: str
-) -> gpd.GeoDataFrame:
-    with tempfile.TemporaryDirectory() as temp_dir:
-        out_path = Path(temp_dir) / f"{partition_key}.gpkg"
-        gdal.VectorTranslate(str(out_path), str(ageb_path), options=options)
-        gdf = gpd.read_file(out_path)
-    return gdf
 
 
 # pylint: disable=no-value-for-parameter
@@ -40,13 +26,14 @@ def translate_geometries_2000(
 )
 def translated_2000(
     context: AssetExecutionContext, path_resource: PathResource, ageb_path: Path
-):
+) -> gpd.GeoDataFrame:
     zone = context.partition_key
     if zone in replace_2000_2010:
-        return gpd.read_file(ageb_path)
+        translated = gpd.read_file(ageb_path)
+        context.log.info(f"Skipped translation for {zone}.")
     else:
         manual_path = Path(path_resource.manual_path)
-        gcp_2000 = load_final_gcp_2000(manual_path, zone)
+        gcp_2000 = load_final_gcp(manual_path / f"gcp/2000/{zone}.points")
         options_str = generate_options_str(gcp_2000)
-        translated = translate_geometries_2000(ageb_path, options_str, zone)
-        return translated
+        translated = translate_geometries_single(ageb_path, options_str)
+    return translated

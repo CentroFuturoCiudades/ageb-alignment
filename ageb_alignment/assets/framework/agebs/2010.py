@@ -2,16 +2,15 @@ import geopandas as gpd
 import pandas as pd
 
 from ageb_alignment.assets.framework.agebs.common import framework_agebs_factory
-from ageb_alignment.types import GeometryTuple
 from dagster import op
 
 
 @op
 def merge_agebs_2010(
-    geometry_2010: GeometryTuple, ageb_2010: pd.DataFrame
+    geometry_ageb_2010: gpd.GeoDataFrame, ageb_2010: pd.DataFrame
 ) -> gpd.GeoDataFrame:
     merged = (
-        geometry_2010.ageb.drop(
+        geometry_ageb_2010.drop(
             columns=[
                 "CODIGO",
                 "GEOGRAFICO",

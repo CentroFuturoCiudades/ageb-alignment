@@ -2,16 +2,15 @@ import geopandas as gpd
 import pandas as pd
 
 from ageb_alignment.assets.framework.agebs.common import framework_agebs_factory
-from ageb_alignment.types import GeometryTuple
 from dagster import op
 
 
 @op
 def merge_agebs_1990(
-    geometry_1990: GeometryTuple, ageb_1990: pd.DataFrame
+    geometry_ageb_1990: gpd.GeoDataFrame, ageb_1990: pd.DataFrame
 ) -> gpd.GeoDataFrame:
     merged = (
-        geometry_1990.ageb.join(ageb_1990, how="left")
+        geometry_ageb_1990.join(ageb_1990, how="left")
         .fillna(0)
         .assign(POBTOT=lambda df: df.POBTOT.astype(int))
         .explode()

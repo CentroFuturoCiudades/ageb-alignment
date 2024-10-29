@@ -2,9 +2,8 @@ import geopandas as gpd
 import pandas as pd
 
 from ageb_alignment.assets.geometry.common import fix_overlapped
-from ageb_alignment.types import GeometryTuple
 from ageb_alignment.resources import AgebListResource, PathResource
-from dagster import asset, AssetIn
+from dagster import graph_asset, op, AssetIn
 from pathlib import Path
 
 
@@ -89,6 +88,7 @@ def remove_overlapped(gdf, ageb_dict):
     return gdf.sort_index()
 
 
+@op
 def fix_multipoly(gdf):
     """Removes manually identified multipoligons from gdf.
 
@@ -113,8 +113,6 @@ def fix_multipoly(gdf):
     gdf = remove_slivers(gdf, with_sliver)
 
     doubles = {
-        # assign geometries to zone, if other exists do union,
-        # list have [left_cvego, right_cvegeo]
         "0600200010638": ["0600200010638", "0600200010534"],
         "1410100010363": ["1410100010363", "1410100010151"],
         "280270001181A": ["280270001181A", "2802700011449"],
@@ -133,6 +131,7 @@ def fix_multipoly(gdf):
     return gdf
 
 
+@op
 def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame):
     replace_list = [
         # Tijuana
@@ -146,16 +145,8 @@ def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame)
     return fixed_agebs
 
 
-@asset(
-    name="1990",
-    key_prefix="geometry",
-    ins={"geometry_2000": AssetIn(key=["geometry", "2000"])},
-)
-def geometry_1990(
-    path_resource: PathResource,
-    overlap_resource: AgebListResource,
-    geometry_2000: GeometryTuple,
-) -> GeometryTuple:
+@op
+def load_agebs_1990(path_resource: PathResource) -> gpd.GeoDataFrame:
     agebs_path = Path(path_resource.raw_path) / "geometry/1990/AGEB_s_90_aj.shp"
     mg_1990_au = (
         gpd.read_file(agebs_path)
@@ -171,14 +162,30 @@ def geometry_1990(
         .sort_index()
         .to_crs("EPSG:6372")
     )
+    return mg_1990_au
 
-    # Remove multipoligons from 1990 geometries by fixing geometric issues
-    mg_1990_au = fix_multipoly(mg_1990_au)
 
-    # Substitute AGEBs
-    mg_1990_au = substitute_agebs(mg_1990_au, geometry_2000.ageb)
-
+@op
+def fix_overlapped_1990(
+    overlap_resource: AgebListResource, mg_1990_au: gpd.GeoDataFrame
+):
     if overlap_resource.ageb_1990 is not None:
         mg_1990_au = fix_overlapped(mg_1990_au, overlap_resource.ageb_1990)
+    return mg_1990_au
 
-    return GeometryTuple(ageb=mg_1990_au)
+
+# pylint: disable=no-value-for-parameter
+@graph_asset(
+    name="1990",
+    key_prefix=["geometry", "ageb"],
+    ins={"geometry_ageb_2000": AssetIn(key=["geometry", "ageb", "2000"])},
+)
+def geometry_ageb_1990(
+    geometry_ageb_2000: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    mg_1990_au = load_agebs_1990()
+    mg_1990_au = fix_multipoly(mg_1990_au)
+    mg_1990_au = substitute_agebs(mg_1990_au, geometry_ageb_2000)
+    mg_1990_au = fix_overlapped_1990(mg_1990_au)
+
+    return mg_1990_au

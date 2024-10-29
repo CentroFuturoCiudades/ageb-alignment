@@ -2,15 +2,14 @@ import geopandas as gpd
 import pandas as pd
 
 from ageb_alignment.assets.framework.agebs.common import framework_agebs_factory
-from ageb_alignment.types import GeometryTuple
 from dagster import op
 
 
 @op
 def merge_agebs_2000(
-    geometry_2000: GeometryTuple, ageb_2000: pd.DataFrame
+    geometry_ageb_2000: gpd.GeoDataFrame, ageb_2000: pd.DataFrame
 ) -> gpd.GeoDataFrame:
-    merged = geometry_2000.ageb.join(ageb_2000, how="left").sort_index()
+    merged = geometry_ageb_2000.join(ageb_2000, how="left").sort_index()
     return merged
 
 

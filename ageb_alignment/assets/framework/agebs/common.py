@@ -1,7 +1,6 @@
 import geopandas as gpd
 
 from ageb_alignment.resources import PathResource
-from ageb_alignment.types import GeometryTuple
 from dagster import (
     graph_asset,
     op,
@@ -49,14 +48,14 @@ def framework_agebs_factory(year: int, merge_op: OpDefinition) -> AssetsDefiniti
         key_prefix=["framework", "agebs"],
         ins={
             "ageb": AssetIn(key=[str(year), "ageb"]),
-            "geometry": AssetIn(key=["geometry", str(year)]),
+            "geometry_ageb": AssetIn(key=["geometry", "ageb", str(year)]),
         },
     )
     def _asset(
         ageb: gpd.GeoDataFrame,
-        geometry: GeometryTuple,
+        geometry_ageb: gpd.GeoDataFrame,
     ) -> gpd.GeoDataFrame:
-        merged = merge_op(geometry, ageb)
+        merged = merge_op(geometry_ageb, ageb)
         df_replacement = load_op()
         merged = replace_manual_agebs(merged, df_replacement)
         return merged

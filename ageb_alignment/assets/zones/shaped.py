@@ -71,7 +71,7 @@ def zone_agebs_shaped_factory(year: int) -> asset:
             if preference_resource.raise_on_deleted_geometries:
                 raise Exception("Geometries were deleted.")
             else:
-                context.warning(f"Geometries for zone {zone} were deleted.")
+                context.log.warning(f"Geometries for zone {zone} were deleted.")
 
         df = df.to_crs("EPSG:6372")
         return df

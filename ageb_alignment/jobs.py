@@ -31,6 +31,4 @@ fix_zones_job = define_asset_job(
     ],
 )
 
-generate_initial_gcp_job = define_asset_job(
-    "generate_gcp", ["+gcp/initial/1990", "+gcp/initial/2000"]
-)
+generate_initial_gcp_job = define_asset_job("generate_gcp", ["+gcp/1990", "+gcp/2000"])

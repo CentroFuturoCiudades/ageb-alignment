@@ -5,10 +5,11 @@ import networkx as nx
 import pandas as pd
 
 from ageb_alignment.partitions import zone_partitions
-from dagster import asset, AssetsDefinition, AssetIn
+from dagster import graph_asset, op, AssetsDefinition, AssetIn, Out
 
 
-def get_vertices(gdf):
+@op
+def get_vertices(gdf: gpd.GeoDataFrame) -> set:
     points = gdf.sjoin(gdf, how="inner", predicate="touches")
 
     g = nx.Graph()
@@ -22,7 +23,8 @@ def get_vertices(gdf):
     return set(vertices)
 
 
-def get_clique_geometries(gdf: gpd.GeoDataFrame, points, *, only_points=False):
+@op
+def get_clique_geometries(gdf: gpd.GeoDataFrame, points: set) -> dict:
     series = gdf.set_index("CVEGEO")
     series = series["geometry"]
 
@@ -36,13 +38,14 @@ def get_clique_geometries(gdf: gpd.GeoDataFrame, points, *, only_points=False):
         intersection = shapely.intersection_all(geometries)
         if intersection.is_empty:
             continue
-        if only_points and not isinstance(intersection, shapely.geometry.Point):
+        if not isinstance(intersection, shapely.geometry.Point):
             continue
         clique_geometries[clique] = intersection
     return clique_geometries
 
 
-def merge_columns(source, target):
+@op(out=Out(io_manager_key="points_manager"))
+def merge_columns(source: dict, target: dict) -> pd.DataFrame:
     temp_source = pd.Series(source, name="source")
     temp_target = pd.Series(target, name="target")
 
@@ -65,15 +68,14 @@ def merge_columns(source, target):
 
 
 def initial_gcp_factory(year: int) -> AssetsDefinition:
-    @asset(
+    @graph_asset(
         name=str(year),
-        key_prefix=["gcp", "initial"],
+        key_prefix=["gcp"],
         ins={
             "df_source": AssetIn(key=["zones_extended", str(year)]),
             "df_target": AssetIn(key=["zones_extended", str(year + 10)]),
         },
         partitions_def=zone_partitions,
-        io_manager_key="points_manager",
     )
     def _asset(
         df_source: gpd.GeoDataFrame,
@@ -82,8 +84,8 @@ def initial_gcp_factory(year: int) -> AssetsDefinition:
         sources = get_vertices(df_source)
         targets = get_vertices(df_target)
 
-        source_geoms = get_clique_geometries(df_source, sources, only_points=True)
-        target_geoms = get_clique_geometries(df_target, targets, only_points=True)
+        source_geoms = get_clique_geometries(df_source, sources)
+        target_geoms = get_clique_geometries(df_target, targets)
 
         merged = merge_columns(source_geoms, target_geoms)
         return merged

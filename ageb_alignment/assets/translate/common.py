@@ -17,7 +17,7 @@ def generate_options_str(gcp: np.ndarray) -> str:
     return options_str
 
 
-def load_final_gcp(gcp_path: Path) -> np.ndarray:
+def load_gcp(gcp_path: Path) -> np.ndarray:
     points = pd.read_csv(
         gcp_path, usecols=["sourceX", "sourceY", "mapX", "mapY"], header=1
     )

@@ -1,14 +1,13 @@
 import geopandas as gpd
 import pandas as pd
 
-from ageb_alignment.assets.geometry.common import fix_overlapped
-from ageb_alignment.resources import AgebListResource, PathResource
+from ageb_alignment.assets.geometry.common import fix_overlapped_op_factory
+from ageb_alignment.resources import PathResource
 from dagster import graph_asset, op, AssetIn
 from pathlib import Path
 
 
-def remove_slivers(gdf, ageb_list):
-    # make copy
+def remove_slivers(gdf: gpd.GeoDataFrame, ageb_list: list) -> gpd.GeoDataFrame:
     gdf = gdf.copy()
 
     # Get partial gdf with slivers
@@ -29,9 +28,8 @@ def remove_slivers(gdf, ageb_list):
     return gdf
 
 
-def reassign_doubles(gdf, ageb_dict):
+def reassign_doubles(gdf: gpd.GeoDataFrame, ageb_dict: dict) -> gpd.GeoDataFrame:
     """Explodes multipoligons and left and right parts to CVEGEO specified on lists."""
-    # make copu
     gdf = gdf.copy()
 
     # Explode and assign new CVEGEO to each part
@@ -165,13 +163,7 @@ def load_agebs_1990(path_resource: PathResource) -> gpd.GeoDataFrame:
     return mg_1990_au
 
 
-@op
-def fix_overlapped_1990(
-    overlap_resource: AgebListResource, mg_1990_au: gpd.GeoDataFrame
-):
-    if overlap_resource.ageb_1990 is not None:
-        mg_1990_au = fix_overlapped(mg_1990_au, overlap_resource.ageb_1990)
-    return mg_1990_au
+fix_overlapped_1990 = fix_overlapped_op_factory(1990)
 
 
 # pylint: disable=no-value-for-parameter

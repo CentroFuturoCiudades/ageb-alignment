@@ -1,6 +1,9 @@
 import geopandas as gpd
 import numpy as np
 
+from ageb_alignment.resources import AgebListResource
+from dagster import op, OpDefinition
+
 
 def fix_overlapped(gdf: gpd.GeoDataFrame, cover_list: list) -> gpd.GeoDataFrame:
     """Fix geometries covering whole other geometries by removing the overlapping part."""
@@ -24,3 +27,16 @@ def fix_overlapped(gdf: gpd.GeoDataFrame, cover_list: list) -> gpd.GeoDataFrame:
         gdf.loc[[source], "geometry"] = new_geoms.loc[[source], "geometry"]
 
     return gdf
+
+
+def fix_overlapped_op_factory(year: int) -> OpDefinition:
+    @op(name=f"fix_overlapped_{year}")
+    def _op(
+        overlap_resource: AgebListResource, agebs: gpd.GeoDataFrame
+    ) -> gpd.GeoDataFrame:
+        overlapped = getattr(overlap_resource, f"ageb_{year}")
+        if overlap_resource.ageb_1990 is not None:
+            agebs = fix_overlapped(agebs, overlapped)
+        return agebs
+
+    return _op

@@ -1,7 +1,7 @@
 import geopandas as gpd
 
-from ageb_alignment.assets.geometry.common import fix_overlapped
-from ageb_alignment.resources import AgebListResource, PathResource
+from ageb_alignment.assets.geometry.common import fix_overlapped_op_factory
+from ageb_alignment.resources import PathResource
 from dagster import asset, graph_asset, op
 from pathlib import Path
 
@@ -29,13 +29,7 @@ def load_agebs_2000(path_resource: PathResource) -> gpd.GeoDataFrame:
     return mg_2000_au
 
 
-@op
-def fix_overlapped_2000(
-    overlap_resource: AgebListResource, agebs: gpd.GeoDataFrame
-) -> gpd.GeoDataFrame:
-    if overlap_resource.ageb_2000 is not None:
-        agebs = fix_overlapped(agebs, overlap_resource.ageb_2000)
-    return agebs
+fix_overlapped_2000 = fix_overlapped_op_factory(2000)
 
 
 # pylint: disable=no-value-for-parameter

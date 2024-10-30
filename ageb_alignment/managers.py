@@ -33,6 +33,8 @@ class BaseManager(ConfigurableIOManager):
                     temp_path = fpath / key
                     temp_path = temp_path.with_suffix(temp_path.suffix + self.extension)
                     final_path[key] = temp_path
+        else:
+            final_path = fpath / context.asset_partition_key
 
         return final_path
 

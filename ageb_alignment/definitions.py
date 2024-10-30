@@ -23,6 +23,7 @@ from ageb_alignment.managers import DataFrameIOManager, PathIOManager
 
 from ageb_alignment.resources import (
     AgebDictResource,
+    AgebNestedDictResource,
     AgebListResource,
     PathResource,
     PreferenceResource,
@@ -76,6 +77,11 @@ preference_resource = PreferenceResource(
     mesh_level=preferences["mesh_level"],
 )
 
+with open("./configs/switches.toml", encoding="utf8") as f:
+    switch_list = toml.load(f)
+switch_list = {f"ageb_{key}": value for key, value in switch_list.items()}
+switch_resource = AgebNestedDictResource(**switch_list)
+
 
 # Managers
 gpkg_manager = DataFrameIOManager(path_resource=path_resource, extension=".gpkg")
@@ -95,6 +101,7 @@ definitions = Definitions.merge(
             "overlap_resource": overlap_resource,
             "remove_from_mun_resource": remove_from_mun_resource,
             "preference_resource": preference_resource,
+            "switch_resource": switch_resource,
             "gpkg_manager": gpkg_manager,
             "geojson_manager": geojson_manager,
             "points_manager": points_manager,

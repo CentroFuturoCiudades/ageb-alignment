@@ -25,3 +25,10 @@ class AgebDictResource(ConfigurableResource):
     ageb_2000: Optional[dict[str, list]] = None
     ageb_2010: Optional[dict[str, list]] = None
     ageb_2020: Optional[dict[str, list]] = None
+
+
+class AgebNestedDictResource(ConfigurableResource):
+    ageb_1990: Optional[dict[str, dict[str, list]]] = None
+    ageb_2000: Optional[dict[str, dict[str, list]]] = None
+    ageb_2010: Optional[dict[str, dict[str, list]]] = None
+    ageb_2020: Optional[dict[str, dict[str, list]]] = None

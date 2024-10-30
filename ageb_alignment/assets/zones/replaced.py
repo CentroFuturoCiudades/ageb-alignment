@@ -87,7 +87,7 @@ def zones_replaced_2000(
     name="1990",
     key_prefix=["zone_agebs", "replaced"],
     ins={
-        "agebs_1990": AssetIn(["zone_agebs", "initial", "1990"]),
+        "agebs_1990": AssetIn(["zone_agebs", "switched", "1990"]),
         "agebs_2000": AssetIn(["zone_agebs", "initial", "2000"]),
         "agebs_2010": AssetIn(["zone_agebs", "initial", "2010"]),
     },

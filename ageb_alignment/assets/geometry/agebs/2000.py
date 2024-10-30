@@ -1,9 +1,12 @@
 import geopandas as gpd
 
-from ageb_alignment.assets.geometry.common import fix_overlapped_op_factory
+from ageb_alignment.assets.geometry.agebs.common import fix_overlapped_op_factory
 from ageb_alignment.resources import PathResource
-from dagster import asset, graph_asset, op
+from dagster import graph_asset, op
 from pathlib import Path
+
+
+fix_overlapped_2000 = fix_overlapped_op_factory(2000)
 
 
 @op
@@ -29,30 +32,9 @@ def load_agebs_2000(path_resource: PathResource) -> gpd.GeoDataFrame:
     return mg_2000_au
 
 
-fix_overlapped_2000 = fix_overlapped_op_factory(2000)
-
-
 # pylint: disable=no-value-for-parameter
 @graph_asset(name="2000", key_prefix=["geometry", "ageb"])
 def geometry_ageb_2000() -> gpd.GeoDataFrame:
     agebs = load_agebs_2000()
     agebs = fix_overlapped_2000(agebs)
     return agebs
-
-
-@asset(name="2000", key_prefix=["geometry", "mun"])
-def geometry_mun_2000(path_resource: PathResource) -> gpd.GeoDataFrame:
-    mun_path = (
-        Path(path_resource.raw_path) / "geometry/2000/mgm2000/Municipios_2000.shp"
-    )
-    mg_2000_m = gpd.read_file(mun_path).to_crs("EPSG:6372")
-    return mg_2000_m
-
-
-@asset(name="2000", key_prefix=["geometry", "state"])
-def geometry_state_2000(path_resource: PathResource) -> gpd.GeoDataFrame:
-    state_path = (
-        Path(path_resource.raw_path) / "geometry/2000/mge2000/Entidades_2000.shp"
-    )
-    mg_2000_e = gpd.read_file(state_path).to_crs("EPSG:6372")
-    return mg_2000_e

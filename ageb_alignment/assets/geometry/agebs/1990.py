@@ -1,17 +1,54 @@
 import geopandas as gpd
 import pandas as pd
 
-from ageb_alignment.assets.geometry.common import fix_overlapped_op_factory
+from ageb_alignment.assets.geometry.agebs.common import fix_overlapped_op_factory
 from ageb_alignment.resources import PathResource
 from dagster import graph_asset, op, AssetIn
 from pathlib import Path
 
 
-def remove_slivers(gdf: gpd.GeoDataFrame, ageb_list: list) -> gpd.GeoDataFrame:
+fix_overlapped_1990 = fix_overlapped_op_factory(1990)
+
+
+@op
+def load_agebs_1990(path_resource: PathResource) -> gpd.GeoDataFrame:
+    agebs_path = Path(path_resource.raw_path) / "geometry/1990/AGEB_s_90_aj.shp"
+    mg_1990_au = (
+        gpd.read_file(agebs_path)
+        .drop(columns=["OBJECTID"])
+        .assign(
+            CVEGEO=lambda df: df.CVE_ENT + df.CVE_MUN + df.CVE_LOC + df.CVE_AGEB,
+            CVE_ENT=lambda df: df.CVE_ENT.astype(int),
+            CVE_MUN=lambda df: df.CVE_MUN.astype(int),
+            CVE_LOC=lambda df: df.CVE_LOC.astype(int),
+        )
+        .set_index("CVEGEO")
+        .drop("2405600010073")
+        .sort_index()
+        .to_crs("EPSG:6372")
+    )
+    return mg_1990_au
+
+
+@op
+def remove_slivers(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    with_sliver = [
+        "0710800010434",
+        "080320001041A",
+        "0803700010755",
+        "0803700011838",
+        "1101500010209",
+        "1406500010030",
+        "1903900011633",
+        "2114900010066",
+        "2402700010141",
+        "2500600010235",
+        "3020400010162",
+    ]
     gdf = gdf.copy()
 
     # Get partial gdf with slivers
-    with_slivers = gdf.loc[ageb_list].copy()
+    with_slivers = gdf.loc[with_sliver].copy()
 
     # Explode and keep larger part
     larger = (
@@ -23,18 +60,25 @@ def remove_slivers(gdf: gpd.GeoDataFrame, ageb_list: list) -> gpd.GeoDataFrame:
     )
 
     # Assign them back
-    gdf.loc[ageb_list] = larger
-
+    gdf.loc[with_sliver] = larger
     return gdf
 
 
-def reassign_doubles(gdf: gpd.GeoDataFrame, ageb_dict: dict) -> gpd.GeoDataFrame:
+@op
+def reassign_doubles(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Explodes multipoligons and left and right parts to CVEGEO specified on lists."""
+
+    doubles = {
+        "0600200010638": ["0600200010638", "0600200010534"],
+        "1410100010363": ["1410100010363", "1410100010151"],
+        "280270001181A": ["280270001181A", "2802700011449"],
+    }
+
     gdf = gdf.copy()
 
     # Explode and assign new CVEGEO to each part
-    doubles_idx = list(ageb_dict.keys())
-    new_cvgeos = sum(ageb_dict.values(), [])
+    doubles_idx = list(doubles.keys())
+    new_cvgeos = sum(doubles.values(), [])
 
     exploded = (
         gdf.loc[doubles_idx]
@@ -62,13 +106,19 @@ def reassign_doubles(gdf: gpd.GeoDataFrame, ageb_dict: dict) -> gpd.GeoDataFrame
     return new_gdf
 
 
-def remove_overlapped(gdf, ageb_dict):
+@op
+def remove_overlapped(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Explodes multipoligons and keeps only the part specified in dict, either left
     or right."""
-    # make copu
+
+    overlapped = {  ## keep stated part
+        "1003200011241": "left",
+        "2800300010843": "right",
+        "3004800730058": "right",
+    }
     gdf = gdf.copy()
 
-    idxs = list(ageb_dict.keys())
+    idxs = list(overlapped.keys())
     exploded = (
         gdf.loc[idxs].explode().assign(cx=lambda df: df.centroid.x).sort_values(by="cx")
     )
@@ -77,7 +127,7 @@ def remove_overlapped(gdf, ageb_dict):
     new_geoms = pd.concat(
         [
             exploded.loc[idx].iloc[idx_map[x] : idx_map[x] + 1]
-            for idx, x in ageb_dict.items()
+            for idx, x in overlapped.items()
         ]
     )
 
@@ -87,50 +137,9 @@ def remove_overlapped(gdf, ageb_dict):
 
 
 @op
-def fix_multipoly(gdf):
-    """Removes manually identified multipoligons from gdf.
-
-    Considers three cases, a multipolygon in which a part is a small excess or sliver,a multipolygon incorrectly composed of two different Agebs, and a multipoligon composed of an ageb and an extra part that overlaps other ageb.
-    """
-    gdf = gdf.copy()
-
-    with_sliver = [
-        "0710800010434",
-        "080320001041A",
-        "0803700010755",
-        "0803700011838",
-        "1101500010209",
-        "1406500010030",
-        "1903900011633",
-        "2114900010066",
-        "2402700010141",
-        "2500600010235",
-        "3020400010162",
-    ]
-
-    gdf = remove_slivers(gdf, with_sliver)
-
-    doubles = {
-        "0600200010638": ["0600200010638", "0600200010534"],
-        "1410100010363": ["1410100010363", "1410100010151"],
-        "280270001181A": ["280270001181A", "2802700011449"],
-    }
-
-    gdf = reassign_doubles(gdf, doubles)
-
-    overlapped = {  ## keep stated part
-        "1003200011241": "left",
-        "2800300010843": "right",
-        "3004800730058": "right",
-    }
-
-    gdf = remove_overlapped(gdf, overlapped)
-
-    return gdf
-
-
-@op
-def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame):
+def substitute_agebs(
+    agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame
+) -> gpd.GeoDataFrame:
     replace_list = [
         # Tijuana
         "0200402832683",
@@ -143,29 +152,6 @@ def substitute_agebs(agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame)
     return fixed_agebs
 
 
-@op
-def load_agebs_1990(path_resource: PathResource) -> gpd.GeoDataFrame:
-    agebs_path = Path(path_resource.raw_path) / "geometry/1990/AGEB_s_90_aj.shp"
-    mg_1990_au = (
-        gpd.read_file(agebs_path)
-        .drop(columns=["OBJECTID"])
-        .assign(
-            CVEGEO=lambda df: df.CVE_ENT + df.CVE_MUN + df.CVE_LOC + df.CVE_AGEB,
-            CVE_ENT=lambda df: df.CVE_ENT.astype(int),
-            CVE_MUN=lambda df: df.CVE_MUN.astype(int),
-            CVE_LOC=lambda df: df.CVE_LOC.astype(int),
-        )
-        .set_index("CVEGEO")
-        .drop("2405600010073")
-        .sort_index()
-        .to_crs("EPSG:6372")
-    )
-    return mg_1990_au
-
-
-fix_overlapped_1990 = fix_overlapped_op_factory(1990)
-
-
 # pylint: disable=no-value-for-parameter
 @graph_asset(
     name="1990",
@@ -176,7 +162,9 @@ def geometry_ageb_1990(
     geometry_ageb_2000: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     mg_1990_au = load_agebs_1990()
-    mg_1990_au = fix_multipoly(mg_1990_au)
+    mg_1990_au = remove_slivers(mg_1990_au)
+    mg_1990_au = reassign_doubles(mg_1990_au)
+    mg_1990_au = remove_overlapped(mg_1990_au)
     mg_1990_au = substitute_agebs(mg_1990_au, geometry_ageb_2000)
     mg_1990_au = fix_overlapped_1990(mg_1990_au)
 

@@ -2,7 +2,7 @@ import geopandas as gpd
 import numpy as np
 
 from ageb_alignment.resources import AgebListResource
-from dagster import op, OpDefinition
+from dagster import op, OpDefinition, OpExecutionContext
 
 
 def fix_overlapped(gdf: gpd.GeoDataFrame, cover_list: list) -> gpd.GeoDataFrame:
@@ -32,10 +32,13 @@ def fix_overlapped(gdf: gpd.GeoDataFrame, cover_list: list) -> gpd.GeoDataFrame:
 def fix_overlapped_op_factory(year: int) -> OpDefinition:
     @op(name=f"fix_overlapped_{year}")
     def _op(
-        overlap_resource: AgebListResource, agebs: gpd.GeoDataFrame
+        context: OpExecutionContext,
+        overlap_resource: AgebListResource,
+        agebs: gpd.GeoDataFrame,
     ) -> gpd.GeoDataFrame:
         overlapped = getattr(overlap_resource, f"ageb_{year}")
-        if overlap_resource.ageb_1990 is not None:
+        if overlapped is not None:
+            context.log.info(f"Fixed overlaps for {year}.")
             agebs = fix_overlapped(agebs, overlapped)
         return agebs
 

@@ -24,10 +24,17 @@ generate_framework_job = define_asset_job(
 fix_zones_job = define_asset_job(
     "generate_zones",
     [
-        "++zone_agebs/shaped/1990",
-        "++zone_agebs/shaped/2000",
-        "+zone_agebs/shaped/2010",
-        "+zone_agebs/shaped/2020",
+        "zone_agebs/initial/1990",
+        "zone_agebs/initial/2000",
+        "zone_agebs/initial/2010",
+        "zone_agebs/initial/2020",
+        "zone_agebs/switched/1990",
+        "zone_agebs/replaced/1990",
+        "zone_agebs/replaced/2000",
+        "zone_agebs/shaped/1990",
+        "zone_agebs/shaped/2000",
+        "zone_agebs/shaped/2010",
+        "zone_agebs/shaped/2020",
     ],
 )
 

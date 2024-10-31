@@ -2,10 +2,13 @@ from ageb_alignment.configs.replacement import replace_1990_2000, replace_2000_2
 
 
 def build_common_replacement_map(rl_1990_2000: list, rl_2000_2010: list) -> dict:
-    sources_1990 = [s if isinstance(s, list) else [s] for s, _ in rl_1990_2000]
-    targets_1990 = [t if isinstance(t, list) else [t] for _, t in rl_1990_2000]
-    sources_2000 = [s if isinstance(s, list) else [s] for s, _ in rl_2000_2010]
-    targets_2000 = [t if isinstance(t, list) else [t] for _, t in rl_2000_2010]
+    rl_1990_2000 = rl_1990_2000.copy()
+    rl_2000_2010 = rl_2000_2010.copy()
+
+    sources_1990 = [s.copy() if isinstance(s, list) else [s] for s, t in rl_1990_2000]
+    targets_1990 = [t.copy() if isinstance(t, list) else [t] for s, t in rl_1990_2000]
+    sources_2000 = [s.copy() if isinstance(s, list) else [s] for s, t in rl_2000_2010]
+    targets_2000 = [t.copy() if isinstance(t, list) else [t] for s, t in rl_2000_2010]
 
     ST = []
 
@@ -20,9 +23,12 @@ def build_common_replacement_map(rl_1990_2000: list, rl_2000_2010: list) -> dict
         t_2000_set = set(sum(shared_tlists, []))
         # For the targets in 2000 not in 1990, add sources and targets lists
         missing = t_2000_set - t_1990_set
-        idxs = [
-            i for i, t in enumerate(targets_1990) if len(missing.intersection(t)) > 0
-        ]
+        # Reverse sorting is needed so we dont mess up
+        # indexing in the loops with deleting
+        idxs = sorted(
+            [i for i, t in enumerate(targets_1990) if len(missing.intersection(t)) > 0],
+            reverse=True,
+        )
         while len(idxs) > 0:
             for i in idxs:
                 t_1990.extend(targets_1990[i])
@@ -36,11 +42,14 @@ def build_common_replacement_map(rl_1990_2000: list, rl_2000_2010: list) -> dict
             ]
             t_2000_set = set(sum(shared_tlists, []))
             missing = t_2000_set - t_1990_set
-            idxs = [
-                i
-                for i, t in enumerate(targets_1990)
-                if len(missing.intersection(t)) > 0
-            ]
+            idxs = sorted(
+                [
+                    i
+                    for i, t in enumerate(targets_1990)
+                    if len(missing.intersection(t)) > 0
+                ],
+                reverse=True,
+            )
         # Get 2000 targets
         r = sum(
             [

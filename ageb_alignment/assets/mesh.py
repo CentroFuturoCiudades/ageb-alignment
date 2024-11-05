@@ -88,13 +88,11 @@ def merge_meshes(
 ins = {}
 for year in (1990, 2000, 2010, 2020):
     if year in (1990, 2000):
-        asset_key = "translated"
+        ins[f"agebs_{year}"] = AssetIn(key=["zone_agebs", "translated", str(year)])
     elif year in (2010, 2020):
-        asset_key = "shaped"
+        ins[f"agebs_{year}"] = AssetIn(key=["zone_agebs", "shaped", str(year)])
     else:
         assert_never(year)
-
-    ins[f"agebs_{year}"] = AssetIn(key=["zone_agebs", asset_key, str(year)])
 
 
 # pylint: disable=no-value-for-parameter

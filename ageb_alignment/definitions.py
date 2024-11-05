@@ -83,6 +83,12 @@ switch_list = {f"ageb_{key}": value for key, value in switch_list.items()}
 switch_resource = AgebNestedDictResource(**switch_list)
 
 
+with open("./configs/affine.toml", encoding="utf8") as f:
+    rigid_list = toml.load(f)
+rigid_list = {f"ageb_{key}": value for key, value in rigid_list.items()}
+affine_resource = AgebDictResource(**rigid_list)
+
+
 # Managers
 gpkg_manager = DataFrameIOManager(path_resource=path_resource, extension=".gpkg")
 geojson_manager = DataFrameIOManager(path_resource=path_resource, extension=".geojson")
@@ -99,8 +105,9 @@ definitions = Definitions.merge(
         resources={
             "path_resource": path_resource,
             "overlap_resource": overlap_resource,
-            "remove_from_mun_resource": remove_from_mun_resource,
             "preference_resource": preference_resource,
+            "remove_from_mun_resource": remove_from_mun_resource,
+            "affine_resource": affine_resource,
             "switch_resource": switch_resource,
             "gpkg_manager": gpkg_manager,
             "geojson_manager": geojson_manager,

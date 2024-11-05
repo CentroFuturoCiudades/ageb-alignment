@@ -8,7 +8,7 @@ from ageb_alignment.assets.translate.common import (
 )
 from ageb_alignment.configs.replacement import replace_2000_2010
 from ageb_alignment.partitions import zone_partitions
-from ageb_alignment.resources import PathResource
+from ageb_alignment.resources import AgebDictResource, PathResource
 from dagster import asset, AssetExecutionContext, AssetIn
 from pathlib import Path
 
@@ -29,13 +29,23 @@ from pathlib import Path
 def translated_2000(
     context: AssetExecutionContext,
     path_resource: PathResource,
+    affine_resource: AgebDictResource,
     ageb_path: Path,
     gcp_orig_2000: pd.DataFrame,
 ) -> gpd.GeoDataFrame:
     zone = context.partition_key
-    if zone in replace_2000_2010:
+
+    if affine_resource.ageb_2000 is not None and zone in affine_resource.ageb_2000:
+        translated = gpd.read_file(ageb_path)
+        translated["geometry"] = translated["geometry"].affine_transform(
+            affine_resource.ageb_2000[zone]
+        )
+        context.log.info(f"Performed affine transformation on {zone}.")
+
+    elif zone in replace_2000_2010:
         translated = gpd.read_file(ageb_path)
         context.log.info(f"Skipped translation for {zone}.")
+
     else:
         manual_path = Path(path_resource.manual_path)
 

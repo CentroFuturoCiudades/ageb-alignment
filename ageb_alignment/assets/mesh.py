@@ -1,4 +1,5 @@
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 
 from ageb_alignment.partitions import zone_partitions
@@ -12,14 +13,27 @@ from typing import assert_never
 def load_mesh(
     path_resource: PathResource,
     preference_resource: PreferenceResource,
-    agebs: gpd.GeoDataFrame,
+    agebs_1990: gpd.GeoDataFrame,
+    agebs_2000: gpd.GeoDataFrame,
+    agebs_2010: gpd.GeoDataFrame,
+    agebs_2020: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
-    bounds = agebs.to_crs("EPSG:6365").total_bounds
+
+    all_bounds = np.empty((4, 4), dtype=float)
+    for i, agebs in enumerate((agebs_1990, agebs_2000, agebs_2010, agebs_2020)):
+        all_bounds[i] = agebs.to_crs("EPSG:6365").total_bounds
+
+    final_bounds = (
+        all_bounds[:, 0].min(),
+        all_bounds[:, 1].min(),
+        all_bounds[:, 2].max(),
+        all_bounds[:, 3].max(),
+    )
 
     mesh_root_path = Path(path_resource.raw_path) / "mesh"
     mesh = []
     for path in mesh_root_path.glob(f"nivel{preference_resource.mesh_level}*.shp"):
-        df = gpd.read_file(path, engine="pyogrio", bbox=tuple(bounds))
+        df = gpd.read_file(path, engine="pyogrio", bbox=final_bounds)
         mesh.append(df)
     mesh = pd.concat(mesh, ignore_index=True)
     mesh = mesh.to_crs("EPSG:6372")
@@ -30,7 +44,6 @@ def load_mesh(
 
 @op(
     ins={"agebs": In(input_manager_key="gpkg_manager")},
-    out=Out(io_manager_key="gpkg_manager"),
 )
 def reproject_to_mesh(
     mesh: gpd.GeoDataFrame, agebs: gpd.GeoDataFrame
@@ -39,7 +52,7 @@ def reproject_to_mesh(
 
     agebs = agebs.copy()
     agebs["ageb_area"] = agebs.area
-    intersection = mesh.overlay(agebs, how="intersection")
+    intersection: gpd.GeoDataFrame = mesh.overlay(agebs, how="intersection")
     intersection["pop_fraction"] = (
         intersection.area / intersection["ageb_area"] * intersection["POBTOT"]
     )
@@ -53,8 +66,27 @@ def reproject_to_mesh(
     return intersection
 
 
-# pylint: disable=no-value-for-parameter
-def reprojected_factory(year: int):
+@op(out=Out(io_manager_key="gpkg_manager"))
+def merge_meshes(
+    agebs_1990: gpd.GeoDataFrame,
+    agebs_2000: gpd.GeoDataFrame,
+    agebs_2010: gpd.GeoDataFrame,
+    agebs_2020: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    merged = agebs_1990.copy().rename(columns={"pop_fraction": "1990"})
+
+    for year, agebs in zip((2000, 2010, 2020), (agebs_2000, agebs_2010, agebs_2020)):
+        temp = (
+            agebs[["codigo", "pop_fraction"]]
+            .copy()
+            .rename(columns={"pop_fraction": str(year)})
+        )
+        merged = merged.merge(temp, how="outer", on="codigo")
+    return merged
+
+
+ins = {}
+for year in (1990, 2000, 2010, 2020):
     if year in (1990, 2000):
         asset_key = "translated"
     elif year in (2010, 2020):
@@ -62,17 +94,28 @@ def reprojected_factory(year: int):
     else:
         assert_never(year)
 
-    @graph_asset(
-        name=str(year),
-        key_prefix="reprojected",
-        ins={"agebs": AssetIn(key=["zone_agebs", asset_key, str(year)])},
-        partitions_def=zone_partitions,
+    ins[f"agebs_{year}"] = AssetIn(key=["zone_agebs", asset_key, str(year)])
+
+
+# pylint: disable=no-value-for-parameter
+@graph_asset(
+    ins=ins,
+    partitions_def=zone_partitions,
+)
+def reprojected(
+    agebs_1990: gpd.GeoDataFrame,
+    agebs_2000: gpd.GeoDataFrame,
+    agebs_2010: gpd.GeoDataFrame,
+    agebs_2020: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    mesh = load_mesh(agebs_1990, agebs_2000, agebs_2010, agebs_2020)
+
+    reprojected_1990 = reproject_to_mesh(mesh, agebs_1990)
+    reprojected_2000 = reproject_to_mesh(mesh, agebs_2000)
+    reprojected_2010 = reproject_to_mesh(mesh, agebs_2010)
+    reprojected_2020 = reproject_to_mesh(mesh, agebs_2020)
+
+    merged = merge_meshes(
+        reprojected_1990, reprojected_2000, reprojected_2010, reprojected_2020
     )
-    def _asset(agebs: dict[str, gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
-        mesh = load_mesh(agebs)
-        return reproject_to_mesh(mesh, agebs)
-
-    return _asset
-
-
-reprojected_assets = [reprojected_factory(year) for year in (1990, 2000, 2010, 2020)]
+    return merged

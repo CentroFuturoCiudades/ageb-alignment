@@ -3,6 +3,7 @@ import toml
 
 from ageb_alignment.assets import (
     census,
+    differences,
     framework,
     gcp,
     geometry,
@@ -45,6 +46,7 @@ warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 
 # Assets
+differences_assets = load_assets_from_modules([differences], group_name="differences")
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
 gcp_assets = load_assets_from_modules([gcp], group_name="gcp")
 translate_assets = load_assets_from_package_module(translate, group_name="translate")
@@ -100,7 +102,7 @@ path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg"
 # Definition
 definitions = Definitions.merge(
     Definitions(
-        assets=metropoli_assets + translate_assets + gcp_assets,
+        assets=metropoli_assets + translate_assets + gcp_assets + differences_assets,
         resources={
             "path_resource": path_resource,
             "overlap_resource": overlap_resource,

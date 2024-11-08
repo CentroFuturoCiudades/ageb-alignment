@@ -4,7 +4,15 @@ import pandas as pd
 
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource, PreferenceResource
-from dagster import graph_asset, op, AssetIn, In, Out
+from dagster import (
+    graph_multi_asset,
+    op,
+    AssetIn,
+    AssetOut,
+    OpExecutionContext,
+    Out,
+    Output,
+)
 from pathlib import Path
 from typing import assert_never
 
@@ -42,9 +50,6 @@ def load_mesh(
     return mesh
 
 
-@op(
-    ins={"agebs": In(input_manager_key="gpkg_manager")},
-)
 def reproject_to_mesh(
     mesh: gpd.GeoDataFrame, agebs: gpd.GeoDataFrame
 ) -> gpd.GeoDataFrame:
@@ -66,26 +71,7 @@ def reproject_to_mesh(
     return intersection
 
 
-@op(out=Out(io_manager_key="gpkg_manager"))
-def merge_meshes(
-    agebs_1990: gpd.GeoDataFrame,
-    agebs_2000: gpd.GeoDataFrame,
-    agebs_2010: gpd.GeoDataFrame,
-    agebs_2020: gpd.GeoDataFrame,
-) -> gpd.GeoDataFrame:
-    merged = agebs_1990.copy().rename(columns={"pop_fraction": "1990"})
-
-    for year, agebs in zip((2000, 2010, 2020), (agebs_2000, agebs_2010, agebs_2020)):
-        temp = (
-            agebs[["codigo", "pop_fraction"]]
-            .copy()
-            .rename(columns={"pop_fraction": str(year)})
-        )
-        merged = merged.merge(temp, how="outer", on="codigo")
-    return merged
-
-
-ins = {}
+ins, outs, op_outs = {}, {}, {}
 for year in (1990, 2000, 2010, 2020):
     if year in (1990, 2000):
         ins[f"agebs_{year}"] = AssetIn(key=["zone_agebs", "translated", str(year)])
@@ -94,26 +80,51 @@ for year in (1990, 2000, 2010, 2020):
     else:
         assert_never(year)
 
+    outs[f"reprojected_{year}"] = AssetOut(
+        key=["reprojected", "base", str(year)], io_manager_key="gpkg_manager"
+    )
+    op_outs[f"reprojected_{year}"] = Out(
+        is_required=False, io_manager_key="gpkg_manager"
+    )
+
+
+@op(out=op_outs)
+def reprojected_dispatcher(
+    context: OpExecutionContext,
+    mesh: gpd.GeoDataFrame,
+    agebs_1990: gpd.GeoDataFrame,
+    agebs_2000: gpd.GeoDataFrame,
+    agebs_2010: gpd.GeoDataFrame,
+    agebs_2020: gpd.GeoDataFrame,
+):
+    if "reprojected_1990" in context.selected_output_names:
+        yield Output(reproject_to_mesh(mesh, agebs_1990), "reprojected_1990")
+
+    if "reprojected_2000" in context.selected_output_names:
+        yield Output(reproject_to_mesh(mesh, agebs_2000), "reprojected_2000")
+
+    if "reprojected_2010" in context.selected_output_names:
+        yield Output(reproject_to_mesh(mesh, agebs_2010), "reprojected_2010")
+
+    if "reprojected_2020" in context.selected_output_names:
+        yield Output(reproject_to_mesh(mesh, agebs_2020), "reprojected_2020")
+
 
 # pylint: disable=no-value-for-parameter
-@graph_asset(
-    ins=ins,
-    partitions_def=zone_partitions,
-)
+@graph_multi_asset(ins=ins, partitions_def=zone_partitions, outs=outs, can_subset=True)
 def reprojected(
     agebs_1990: gpd.GeoDataFrame,
     agebs_2000: gpd.GeoDataFrame,
     agebs_2010: gpd.GeoDataFrame,
     agebs_2020: gpd.GeoDataFrame,
-) -> gpd.GeoDataFrame:
+):
     mesh = load_mesh(agebs_1990, agebs_2000, agebs_2010, agebs_2020)
-
-    reprojected_1990 = reproject_to_mesh(mesh, agebs_1990)
-    reprojected_2000 = reproject_to_mesh(mesh, agebs_2000)
-    reprojected_2010 = reproject_to_mesh(mesh, agebs_2010)
-    reprojected_2020 = reproject_to_mesh(mesh, agebs_2020)
-
-    merged = merge_meshes(
-        reprojected_1990, reprojected_2000, reprojected_2010, reprojected_2020
+    reprojected_1990, reprojected_2000, reprojected_2010, reprojected_2020 = (
+        reprojected_dispatcher(mesh, agebs_1990, agebs_2000, agebs_2010, agebs_2020)
     )
-    return merged
+    return {
+        "reprojected_1990": reprojected_1990,
+        "reprojected_2000": reprojected_2000,
+        "reprojected_2010": reprojected_2010,
+        "reprojected_2020": reprojected_2020,
+    }

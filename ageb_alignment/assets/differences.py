@@ -17,12 +17,16 @@ def differences_factory(start_year: int, end_year: int) -> AssetsDefinition:
         io_manager_key="gpkg_manager",
     )
     def _asset(merged: gpd.GeoDataFrame):
+        merged = merged[["codigo", start_year, end_year, "geometry"]].copy()
         merged = merged.dropna(subset=[start_year, end_year], how="all")
         merged = merged[~((merged[start_year].notna()) & (merged[end_year].isna()))]
-        merged = merged.fillna(0)
+
+        merged[start_year] = merged[start_year].fillna(0)
+        merged[end_year] = merged[end_year].fillna(0)
+
         merged = merged[~(merged[[start_year, end_year]] == 0).all(axis=1)]
         merged["difference"] = merged[end_year] - merged[start_year]
-        merged = merged[["difference", "geometry"]]
+        merged = merged.drop(columns=[start_year, end_year])
         return merged
 
     return _asset

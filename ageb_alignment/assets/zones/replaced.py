@@ -3,11 +3,11 @@ import numpy as np
 
 from ageb_alignment.configs.replacement import (
     replace_1990_2000,
-    replace_2000_2010,
     replace_1990_2010,
+    replace_2000_2010,
 )
 from ageb_alignment.partitions import zone_partitions
-from dagster import asset, AssetExecutionContext, AssetIn
+from dagster import AssetExecutionContext, AssetIn, asset
 
 
 def replace_geoms(
@@ -29,7 +29,7 @@ def replace_geoms(
         else:
             old_idx += oi
     if check_complete:
-        assert np.all(sorted(old_idx) == gdf_old.index)
+        assert np.all(sorted(old_idx) == sorted(gdf_old.index))
 
     # Check targets are unique
     targets = [tl for _, tl in replace_list]

@@ -1,11 +1,10 @@
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 
 from ageb_alignment.configs.replacement import replace_1990_2000, replace_1990_2010
 from ageb_alignment.assets.translate.common import (
     generate_options_str,
-    load_gcp,
+    get_gcp_fallback,
     translate_geometries_single,
     translate_geometries_double,
 )
@@ -13,17 +12,6 @@ from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import AgebDictResource, PathResource
 from dagster import asset, AssetExecutionContext, AssetIn
 from pathlib import Path
-
-
-def get_gcp_fallback(
-    gcp_path: Path, gcp_orig: pd.DataFrame, context: AssetExecutionContext
-) -> np.ndarray:
-    if gcp_path.exists():
-        gcp = load_gcp(gcp_path)
-    else:
-        context.log.warning("Used automatic GCP for 1990.")
-        gcp = gcp_orig[["sourceX", "sourceY", "mapX", "mapY"]].to_numpy()
-    return gcp
 
 
 # pylint: disable=no-value-for-parameter
@@ -59,7 +47,7 @@ def translated_1990(
 
     elif zone in replace_1990_2010:
         translated = gpd.read_file(ageb_path)
-        context.log.info(f"Skipped translation for {zone}.")
+        context.log.info(f"Skipped translation for {zone}/1990.")
 
     else:
         manual_path = Path(path_resource.manual_path)
@@ -69,8 +57,10 @@ def translated_1990(
             (1990, 2000), (gcp_automatic_1990, gcp_automatic_2000)
         ):
             gcp_final_path = manual_path / f"gcp/{year}/{zone}.points"
-            gcp = get_gcp_fallback(gcp_final_path, gcp_automatic, context)
-            options[year] = generate_options_str(gcp)
+            gcp, transform_options = get_gcp_fallback(
+                gcp_final_path, gcp_automatic, context, 1990
+            )
+            options[year] = generate_options_str(gcp, transform_options)
 
         if zone in replace_1990_2000:
             context.log.info(f"Performed single translation for {zone}.")

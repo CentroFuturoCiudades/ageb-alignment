@@ -169,14 +169,10 @@ def metropoli_list(
     )
 
     zones_mun_dict = {}
-    unique_zones = set()
     for zone, mun in df.index:
         if zone in zones_mun_dict:
             zones_mun_dict[zone].append(mun)
         else:
             zones_mun_dict[zone] = [mun]
 
-        unique_zones.add(zone)
-
-    context.instance.add_dynamic_partitions("zone", list(unique_zones))
     return zones_mun_dict

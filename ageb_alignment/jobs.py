@@ -1,8 +1,9 @@
-# pylint: disable=assignment-from-no-return
+import os
 
 from dagster import define_asset_job
 
 
+# pylint: disable=assignment-from-no-return
 generate_framework_job = define_asset_job(
     "generate_framework",
     [
@@ -39,4 +40,13 @@ pipeline_2_job = define_asset_job(
         "zone_agebs/shaped/2010*",
         "zone_agebs/shaped/2020*",
     ],
+    config={
+        "execution": {
+            "config": {
+                "multiprocess": {
+                    "max_concurrent": int(os.getenv("MAX_CONCURRENT_ASSETS")),
+                },
+            }
+        }
+    },
 )

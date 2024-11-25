@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from ageb_alignment.resources import PathResource
-from dagster import asset, AssetExecutionContext
+from dagster import asset
 from pathlib import Path
 
 
@@ -155,7 +155,6 @@ def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
 
 @asset
 def metropoli_list(
-    context: AssetExecutionContext,
     metropoli_2020: gpd.GeoDataFrame,
     metropoli_table: pd.DataFrame,
 ) -> dict:

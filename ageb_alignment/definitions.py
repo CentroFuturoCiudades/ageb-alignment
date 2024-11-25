@@ -17,7 +17,8 @@ from ageb_alignment.assets import (
 from ageb_alignment.jobs import (
     generate_framework_job,
     generate_initial_gcp_job,
-    fix_zones_job,
+    pipeline_1_job,
+    pipeline_2_job,
 )
 
 from ageb_alignment.managers import DataFrameIOManager, PathIOManager
@@ -116,7 +117,12 @@ definitions = Definitions.merge(
             "path_geojson_manager": path_geojson_manager,
             "path_gpkg_manager": path_gpkg_manager,
         },
-        jobs=[generate_framework_job, generate_initial_gcp_job, fix_zones_job],
+        jobs=[
+            generate_framework_job,
+            generate_initial_gcp_job,
+            pipeline_1_job,
+            pipeline_2_job,
+        ],
     ),
     census.defs,
     framework.defs,

@@ -20,22 +20,23 @@ generate_framework_job = define_asset_job(
     ],
 )
 
+generate_initial_gcp_job = define_asset_job("generate_gcp", ["+gcp/1990", "+gcp/2000"])
 
-fix_zones_job = define_asset_job(
-    "generate_zones",
+pipeline_1_job = define_asset_job(
+    "pipeline_1",
     [
-        "zone_agebs/initial/1990",
-        "zone_agebs/initial/2000",
-        "zone_agebs/initial/2010",
-        "zone_agebs/initial/2020",
-        "zone_agebs/switched/1990",
-        "zone_agebs/replaced/1990",
-        "zone_agebs/replaced/2000",
-        "zone_agebs/shaped/1990",
-        "zone_agebs/shaped/2000",
-        "zone_agebs/shaped/2010",
-        "zone_agebs/shaped/2020",
+        "*zone_agebs/initial/1990",
+        "*zone_agebs/initial/2000",
+        "*zone_agebs/initial/2010",
+        "*zone_agebs/initial/2020",
     ],
 )
-
-generate_initial_gcp_job = define_asset_job("generate_gcp", ["+gcp/1990", "+gcp/2000"])
+pipeline_2_job = define_asset_job(
+    "pipeline_2",
+    [
+        "zone_agebs/switched/1990*",
+        "zone_agebs/replaced/2000*",
+        "zone_agebs/shaped/2010*",
+        "zone_agebs/shaped/2020*",
+    ],
+)

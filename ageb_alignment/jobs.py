@@ -25,10 +25,10 @@ generate_initial_gcp_job = define_asset_job("generate_gcp", ["+gcp/1990", "+gcp/
 pipeline_1_job = define_asset_job(
     "pipeline_1",
     [
-        "*zone_agebs/initial/1990",
-        "*zone_agebs/initial/2000",
-        "*zone_agebs/initial/2010",
-        "*zone_agebs/initial/2020",
+        "zone_agebs/initial/1990",
+        "zone_agebs/initial/2000",
+        "zone_agebs/initial/2010",
+        "zone_agebs/initial/2020",
     ],
 )
 pipeline_2_job = define_asset_job(

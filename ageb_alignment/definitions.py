@@ -2,6 +2,7 @@ import os
 import toml
 
 from ageb_alignment.assets import (
+    built,
     census,
     differences,
     framework,
@@ -51,6 +52,7 @@ differences_assets = load_assets_from_modules([differences], group_name="differe
 metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
 gcp_assets = load_assets_from_modules([gcp], group_name="gcp")
 translate_assets = load_assets_from_package_module(translate, group_name="translate")
+built_assets = load_assets_from_modules([built], group_name="built")
 
 
 # Resources
@@ -58,6 +60,7 @@ path_resource = PathResource(
     raw_path=EnvVar("RAW_PATH"),
     manual_path=os.path.abspath("./manual_files"),
     out_path=EnvVar("OUT_PATH"),
+    ghsl_path=EnvVar("GHSL_GLOBAL_PATH"),
 )
 
 with open("./configs/overlaps.toml", "r", encoding="utf8") as f:
@@ -103,7 +106,11 @@ path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg"
 # Definition
 definitions = Definitions.merge(
     Definitions(
-        assets=metropoli_assets + translate_assets + gcp_assets + differences_assets,
+        assets=metropoli_assets
+        + translate_assets
+        + gcp_assets
+        + differences_assets
+        + built_assets,
         resources={
             "path_resource": path_resource,
             "overlap_resource": overlap_resource,

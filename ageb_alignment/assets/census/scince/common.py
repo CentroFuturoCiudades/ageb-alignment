@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def scince_factory(year: int, pop_col_name: str):
-    @asset(name="ageb", key_prefix=str(year), group_name=f"census_{year}")
+    @asset(name="ageb", key_prefix=["census", str(year)], group_name=f"census_{year}", io_manager_key="csv_manager")
     def _asset(path_resource: PathResource) -> pd.DataFrame:
         census_path = Path(path_resource.raw_path) / f"census/SCINCE/{year}"
         census_a = (

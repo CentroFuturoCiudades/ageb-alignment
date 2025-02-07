@@ -47,7 +47,7 @@ def framework_agebs_factory(year: int, merge_op: OpDefinition) -> AssetsDefiniti
         name=str(year),
         key_prefix=["framework", "agebs"],
         ins={
-            "ageb": AssetIn(key=[str(year), "ageb"]),
+            "ageb": AssetIn(key=["census", str(year), "ageb"]),
             "geometry_ageb": AssetIn(key=["geometry", "ageb", str(year)]),
         },
     )

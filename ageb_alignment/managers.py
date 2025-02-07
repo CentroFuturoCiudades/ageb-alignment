@@ -60,7 +60,7 @@ class DataFrameIOManager(BaseManager):
         if self._is_geodataframe():
             obj.to_file(out_path, mode="w")
         else:
-            obj.to_csv(out_path, index=False)
+            obj.to_csv(out_path)
 
     def load_input(self, context: InputContext) -> gpd.GeoDataFrame:
         path = self._get_path(context)

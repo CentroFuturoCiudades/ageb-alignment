@@ -24,7 +24,7 @@ def states_2000(geometry_state_2000: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     name="2010",
     key_prefix=["framework", "states"],
     ins={
-        "state_2010": AssetIn(key=["2010", "state"]),
+        "state_2010": AssetIn(key=["census", "2010", "state"]),
         "geometry_state_2010": AssetIn(key=["geometry", "state", "2010"]),
     },
     io_manager_key="gpkg_manager",
@@ -46,7 +46,7 @@ def states_2010(
     name="2020",
     key_prefix=["framework", "states"],
     ins={
-        "state_2020": AssetIn(key=["2020", "state"]),
+        "state_2020": AssetIn(key=["census", "2020", "state"]),
         "geometry_state_2020": AssetIn(key=["geometry", "state", "2020"]),
     },
     io_manager_key="gpkg_manager",

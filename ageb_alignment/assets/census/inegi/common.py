@@ -53,7 +53,7 @@ def load_census_inegi(census_path: Path) -> pd.DataFrame:
 
 
 def inegi_factory(year: int) -> AssetsDefinition:
-    @asset(name="ageb", key_prefix=str(year), group_name=f"census_{year}")
+    @asset(name="ageb", key_prefix=["census", str(year)], group_name=f"census_{year}", io_manager_key="csv_manager")
     def _asset(path_resource: PathResource) -> pd.DataFrame:
         fpath = Path(path_resource.raw_path) / f"census/INEGI/{year}"
         return load_census_inegi(fpath)

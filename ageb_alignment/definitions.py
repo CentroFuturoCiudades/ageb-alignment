@@ -98,6 +98,7 @@ affine_resource = AgebDictResource(**rigid_list)
 gpkg_manager = DataFrameIOManager(path_resource=path_resource, extension=".gpkg")
 geojson_manager = DataFrameIOManager(path_resource=path_resource, extension=".geojson")
 points_manager = DataFrameIOManager(path_resource=path_resource, extension=".points")
+csv_manager = DataFrameIOManager(path_resource=path_resource, extension=".csv")
 
 path_geojson_manager = PathIOManager(path_resource=path_resource, extension=".geojson")
 path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg")
@@ -123,6 +124,7 @@ definitions = Definitions.merge(
             "points_manager": points_manager,
             "path_geojson_manager": path_geojson_manager,
             "path_gpkg_manager": path_gpkg_manager,
+            "csv_manager": csv_manager,
         },
         jobs=[
             generate_framework_job,

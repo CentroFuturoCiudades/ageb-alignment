@@ -64,7 +64,7 @@ def load_census_iter_2010_2020(census_path: Path) -> pd.DataFrame:
     return census
 
 
-@op(out={name: Out(is_required=False) for name in FIELD_NAMES})
+@op(out={name: Out(is_required=False, io_manager_key="csv_manager") for name in FIELD_NAMES})
 def census_dispatcher(context: OpExecutionContext, census_iter: pd.DataFrame):
     if "state" in context.selected_output_names:
         yield Output(get_census_state(census_iter), output_name="state")
@@ -78,7 +78,7 @@ def census_dispatcher(context: OpExecutionContext, census_iter: pd.DataFrame):
 def iter_factory(year: int, loading_func: Callable):
     @graph_multi_asset(
         name=f"census_{year}",
-        outs={name: AssetOut(key=[str(year), name]) for name in FIELD_NAMES},
+        outs={name: AssetOut(key=["census", str(year), name]) for name in FIELD_NAMES},
         group_name=f"census_{year}",
         can_subset=True,
     )

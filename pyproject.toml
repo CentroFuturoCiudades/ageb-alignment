@@ -6,7 +6,7 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.12"
+python = ">=3.11,<3.13"
 dagster = "^1.8.10"
 dagster-webserver = "^1.8.10"
 geopandas = "^1.0.1"
@@ -23,6 +23,7 @@ gdal = [
     { version = "3.8.4", platform = "darwin", source = "pypi" }
 ]
 rasterio = "^1.4.3"
+numpy = "^1.26.4"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"

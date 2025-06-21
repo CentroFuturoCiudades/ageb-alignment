@@ -16,6 +16,7 @@ def load_agebs_2020(path_resource: PathResource):
         gpd.read_file(in_path / "00a.shp")
         .to_crs("EPSG:6372")
         .query("Ambito == 'Urbana'")
+        .assign(CVEGEO=lambda df: df["CVEGEO"].astype(str).str.zfill(13))
         .set_index("CVEGEO")
     )
     return agebs

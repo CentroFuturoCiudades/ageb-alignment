@@ -1,9 +1,9 @@
+import dagster as dg
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 
 from ageb_alignment.resources import PathResource
-from dagster import asset
 from pathlib import Path
 
 
@@ -27,7 +27,7 @@ def get_tcma(x0, x1, num_years):
     return ((x1 / x0) ** (1 / num_years) - 1) * 100
 
 
-@asset
+@dg.asset(name="2020", key_prefix="metropoli", io_manager_key="gpkg_manager")
 def metropoli_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
     metropoli_path = Path(path_resource.raw_path) / "metropoli/2020"
     metropoli_muns_gdf = (
@@ -39,7 +39,7 @@ def metropoli_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
     return metropoli_muns_gdf
 
 
-@asset
+@dg.asset(name="table", key_prefix="metropoli", io_manager_key="csv_manager")
 def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
     sheet_path = Path(path_resource.raw_path) / "metropoli/Cuadros_MM2020.xlsx"
 
@@ -153,11 +153,22 @@ def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
     return metropoli_muns_gdf
 
 
-@asset
+@dg.asset(
+    name="list",
+    key_prefix="metropoli",
+    ins={
+        "metropoli_2020": dg.AssetIn(key=["metropoli", "2020"]),
+        "metropoli_table": dg.AssetIn(key=["metropoli", "table"]),
+    },
+    io_manager_key="json_manager"
+)
 def metropoli_list(
     metropoli_2020: gpd.GeoDataFrame,
     metropoli_table: pd.DataFrame,
-) -> dict:
+) -> dict[str, list[str]]:
+    metropoli_2020 = metropoli_2020.set_index(["CVE_MET", "CVEGEO"])
+    metropoli_table = metropoli_table.set_index(["CVE_MET", "CVEGEO"])
+
     df = (
         pd.concat([metropoli_2020, metropoli_table], axis=1)
         .assign(AREA_TOT=lambda x: x.area / 1e6)
@@ -167,11 +178,13 @@ def metropoli_list(
         .sort_index()
     )
 
-    zones_mun_dict = {}
+    zones_mun_dict: dict[str, set[str]] = {}
     for zone, mun in df.index:
         if zone in zones_mun_dict:
-            zones_mun_dict[zone].append(mun)
+            zones_mun_dict[zone].add(str(mun).zfill(5))
         else:
-            zones_mun_dict[zone] = [mun]
+            zones_mun_dict[zone] = {str(mun).zfill(5)}
 
-    return zones_mun_dict
+    return {k: list(v) for k, v in zones_mun_dict.items()}
+
+

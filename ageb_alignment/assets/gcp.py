@@ -63,17 +63,16 @@ def merge_columns(source: dict, target: dict) -> pd.DataFrame:
     merged = merged.drop_duplicates(subset=["mapX", "mapY", "sourceX", "sourceY"])
     merged = merged.drop_duplicates(subset=["sourceX", "sourceY"])
     merged = merged.drop_duplicates(subset=["mapX", "mapY"])
-
     return merged
 
 
-def initial_gcp_factory(year: int) -> AssetsDefinition:
+def initial_gcp_factory(source_year: int, target_year: int) -> AssetsDefinition:
     @graph_asset(
-        name=str(year),
+        name=str(source_year),
         key_prefix=["gcp"],
         ins={
-            "df_source": AssetIn(key=["zones_extended", str(year)]),
-            "df_target": AssetIn(key=["zones_extended", str(year + 10)]),
+            "df_source": AssetIn(key=["zone_agebs", "extended", str(source_year)]),
+            "df_target": AssetIn(key=["zone_agebs", "extended", str(target_year)]),
         },
         partitions_def=zone_partitions,
     )
@@ -94,9 +93,6 @@ def initial_gcp_factory(year: int) -> AssetsDefinition:
 
 
 initial_gcp_assets = [
-    initial_gcp_factory(year)
-    for year in (
-        1990,
-        2000,
-    )
+    initial_gcp_factory(1990, 2010),
+    initial_gcp_factory(2000, 2010),
 ]

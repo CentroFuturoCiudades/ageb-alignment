@@ -1,8 +1,8 @@
+import dagster as dg
 import geopandas as gpd
 import numpy as np
 
 from ageb_alignment.resources import AgebListResource
-from dagster import op, OpDefinition, OpExecutionContext
 
 
 def fix_overlapped(gdf: gpd.GeoDataFrame, cover_list: list) -> gpd.GeoDataFrame:
@@ -29,10 +29,10 @@ def fix_overlapped(gdf: gpd.GeoDataFrame, cover_list: list) -> gpd.GeoDataFrame:
     return gdf
 
 
-def fix_overlapped_op_factory(year: int) -> OpDefinition:
-    @op(name=f"fix_overlapped_{year}")
+def fix_overlapped_op_factory(year: int) -> dg.OpDefinition:
+    @dg.op(name=f"fix_overlapped_{year}", out=dg.Out(io_manager_key="gpkg_manager"))
     def _op(
-        context: OpExecutionContext,
+        context: dg.OpExecutionContext,
         overlap_resource: AgebListResource,
         agebs: gpd.GeoDataFrame,
     ) -> gpd.GeoDataFrame:
@@ -40,6 +40,8 @@ def fix_overlapped_op_factory(year: int) -> OpDefinition:
         if overlapped is not None:
             context.log.info(f"Fixed overlaps for {year}.")
             agebs = fix_overlapped(agebs, overlapped)
-        return agebs
+
+        return agebs[["geometry"]]
+
 
     return _op

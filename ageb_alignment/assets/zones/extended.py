@@ -33,17 +33,18 @@ def get_outer_polygon(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 def zones_extended_factory(year: int) -> AssetsDefinition:
     @asset(
         name=str(year),
-        key_prefix="zones_extended",
+        key_prefix=["zone_agebs", "extended"],
         ins={
             "agebs": AssetIn(key=["zone_agebs", "shaped", str(year)]),
         },
+        io_manager_key="gpkg_manager",
         partitions_def=zone_partitions,
     )
     def _asset(agebs: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         agebs = agebs.copy()
         agebs["geometry"] = agebs["geometry"].make_valid()
         outer_poly = get_outer_polygon(agebs)
-        agebs = pd.concat([agebs, outer_poly], ignore_index=True)
+        agebs = gpd.GeoDataFrame(pd.concat([agebs, outer_poly], ignore_index=True))
         return agebs
 
     return _asset

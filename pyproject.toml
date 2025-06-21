@@ -24,10 +24,16 @@ gdal = [
 ]
 rasterio = "^1.4.3"
 numpy = "^1.26.4"
+pandas-stubs = "^2.2.3.250308"
+scipy = "^1.15.3"
+matplotlib = "^3.10.3"
+seaborn = "^0.13.2"
+contextily = "^1.6.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"
 ipykernel = "^6.29.5"
+python-dotenv = "^1.1.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -36,3 +42,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.dagster]
 module_name = "ageb_alignment.definitions"
 code_location_name = "ageb_alignment"
+
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+ignore = ["**/*.ipynb"]

@@ -10,18 +10,12 @@ from pathlib import Path
 
 
 def zone_agebs_shaped_factory(year: int) -> asset:
-    key_infix = None
-    if year in (1990, 2000):
-        key_infix = "replaced"
-    elif year in (2010, 2020):
-        key_infix = "initial"
-
     @asset(
         name=str(year),
         key_prefix=["zone_agebs", "shaped"],
         ins={
             "ageb_path": AssetIn(
-                key=["zone_agebs", key_infix, str(year)],
+                key=["zone_agebs", "initial", str(year)],
                 input_manager_key="path_geojson_manager",
             )
         },
@@ -44,23 +38,27 @@ def zone_agebs_shaped_factory(year: int) -> asset:
 
         if os.name == "nt":
             shell = True
-            quote = '"'
+            quote = ''
         else:
             shell = False
             quote = ""
 
-        subprocess.check_call(
-            [
-                "npx",
-                "mapshaper",
-                "-i",
-                f"{quote}{ageb_path}{quote}",
-                "-clean",
-                "-o",
-                f"{quote}{out_path_json}{quote}",
-            ],
-            shell=shell,
-        )
+        try:
+            subprocess.check_call(
+                [
+                    "npx",
+                    "mapshaper",
+                    "-i",
+                    f"{quote}{ageb_path}{quote}",
+                    "-clean",
+                    "-o",
+                    f"{quote}{out_path_json}{quote}",
+                ],
+                shell=shell,
+            )
+        except subprocess.CalledProcessError as e:
+            print(e.output)
+            raise
 
         df = gpd.read_file(out_path_json)
         df_orig = gpd.read_file(ageb_path)

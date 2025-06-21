@@ -11,18 +11,19 @@ from dagster import (
     Out,
 )
 from pathlib import Path
-from typing import Optional
 
 
 def load_manual_agebs_factory(year: int) -> OpDefinition:
     @op(name=f"load_manual_agebs_{year}")
     def _op(
         context: OpExecutionContext, path_resource: PathResource
-    ) -> Optional[gpd.GeoDataFrame]:
+    ) -> gpd.GeoDataFrame | None:
         manual_path = Path(path_resource.manual_path) / f"framework_replace/{year}.gpkg"
         if manual_path.exists():
             context.log.info(f"Loaded framework replace DataFrame for {year}.")
             return gpd.read_file(manual_path).set_index("CVEGEO")
+
+        return None
 
     return _op
 
@@ -31,7 +32,7 @@ def load_manual_agebs_factory(year: int) -> OpDefinition:
 def replace_manual_agebs(
     context: OpExecutionContext,
     merged: gpd.GeoDataFrame,
-    df_replacement: Optional[gpd.GeoDataFrame],
+    df_replacement: gpd.GeoDataFrame | None,
 ) -> gpd.GeoDataFrame:
     if df_replacement is not None:
         merged.update(df_replacement)

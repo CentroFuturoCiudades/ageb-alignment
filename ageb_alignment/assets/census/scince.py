@@ -24,3 +24,6 @@ def scince_factory(year: int, pop_col_name: str):
         return census_a
 
     return _asset
+
+
+dassets = [scince_factory(year, col) for year, col in zip([1990, 2000], ["0", "Z1"])]

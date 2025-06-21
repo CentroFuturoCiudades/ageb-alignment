@@ -15,12 +15,12 @@ def load_agebs_2010(path_resource: PathResource):
     agebs = (
         gpd.read_file(in_path / "mgau2010v5_0/AGEB_urb_2010_5.shp")
         .to_crs("EPSG:6372")
+        .assign(CVEGEO=lambda df: df["CVEGEO"].astype(str).str.zfill(13))
         .set_index("CVEGEO")
     )
     return agebs
 
 
-# pylint: disable=no-value-for-parameter
 @graph_asset(name="2010", key_prefix=["geometry", "ageb"])
 def geometry_ageb_2010() -> gpd.GeoDataFrame:
     agebs = load_agebs_2010()

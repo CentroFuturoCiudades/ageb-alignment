@@ -17,10 +17,11 @@ def load_agebs_1990(path_resource: PathResource) -> gpd.GeoDataFrame:
         gpd.read_file(agebs_path)
         .drop(columns=["OBJECTID"])
         .assign(
+            CVE_ENT=lambda df: df["CVE_ENT"].astype(str).str.zfill(2),
+            CVE_MUN=lambda df: df["CVE_MUN"].astype(str).str.zfill(3),
+            CVE_LOC=lambda df: df["CVE_LOC"].astype(str).str.zfill(4),
+            CVE_AGEB=lambda df: df["CVE_AGEB"].astype(str).str.zfill(4),
             CVEGEO=lambda df: df.CVE_ENT + df.CVE_MUN + df.CVE_LOC + df.CVE_AGEB,
-            CVE_ENT=lambda df: df.CVE_ENT.astype(int),
-            CVE_MUN=lambda df: df.CVE_MUN.astype(int),
-            CVE_LOC=lambda df: df.CVE_LOC.astype(int),
         )
         .set_index("CVEGEO")
         .drop("2405600010073")
@@ -99,11 +100,9 @@ def reassign_doubles(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         exploded.loc[exists_other].union(gdf.loc[exists_other], align=True).values
     )
 
-    new_gdf = pd.concat(
+    return gpd.GeoDataFrame(pd.concat(
         [gdf.drop(doubles_idx + exists_other).copy(), exploded]
-    ).sort_index()
-
-    return new_gdf
+    ).sort_index())
 
 
 @op
@@ -140,6 +139,8 @@ def remove_overlapped(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 def substitute_agebs(
     agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame
 ) -> gpd.GeoDataFrame:
+    agebs_2000 = agebs_2000.set_index("CVEGEO")
+
     replace_list = [
         # Tijuana
         "0200402832683",
@@ -152,7 +153,6 @@ def substitute_agebs(
     return fixed_agebs
 
 
-# pylint: disable=no-value-for-parameter
 @graph_asset(
     name="1990",
     key_prefix=["geometry", "ageb"],

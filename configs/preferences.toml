@@ -1,4 +1,4 @@
-raise_on_deleted_geometries = true
+raise_on_deleted_geometries = false
 mesh_level = 9
 
 # [pos_alignment_1990]

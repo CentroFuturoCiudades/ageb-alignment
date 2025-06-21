@@ -22,7 +22,7 @@ from ageb_alignment.jobs import (
     pipeline_2_job,
 )
 
-from ageb_alignment.managers import DataFrameIOManager, PathIOManager
+from ageb_alignment.managers import DataFrameIOManager, JSONIOManager, PathIOManager
 
 from ageb_alignment.resources import (
     AgebDictResource,
@@ -37,14 +37,7 @@ from dagster import (
     load_assets_from_package_module,
     Definitions,
     EnvVar,
-    ExperimentalWarning,
 )
-
-
-# Suppress experimental warnings
-import warnings
-
-warnings.filterwarnings("ignore", category=ExperimentalWarning)
 
 
 # Assets
@@ -58,7 +51,7 @@ built_assets = load_assets_from_modules([built], group_name="built")
 # Resources
 path_resource = PathResource(
     raw_path=EnvVar("RAW_PATH"),
-    manual_path=os.path.abspath("./manual_files"),
+    manual_path=EnvVar("INTERMEDIATE_PATH"),
     out_path=EnvVar("OUT_PATH"),
     ghsl_path=EnvVar("GHSL_GLOBAL_PATH"),
 )
@@ -97,8 +90,9 @@ affine_resource = AgebDictResource(**rigid_list)
 # Managers
 gpkg_manager = DataFrameIOManager(path_resource=path_resource, extension=".gpkg")
 geojson_manager = DataFrameIOManager(path_resource=path_resource, extension=".geojson")
-points_manager = DataFrameIOManager(path_resource=path_resource, extension=".points")
+points_manager = DataFrameIOManager(path_resource=path_resource, extension=".points", with_index=False)
 csv_manager = DataFrameIOManager(path_resource=path_resource, extension=".csv")
+json_manager = JSONIOManager(path_resource=path_resource, extension=".json")
 
 path_geojson_manager = PathIOManager(path_resource=path_resource, extension=".geojson")
 path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg")
@@ -125,6 +119,7 @@ definitions = Definitions.merge(
             "path_geojson_manager": path_geojson_manager,
             "path_gpkg_manager": path_gpkg_manager,
             "csv_manager": csv_manager,
+            "json_manager": json_manager,
         },
         jobs=[
             generate_framework_job,

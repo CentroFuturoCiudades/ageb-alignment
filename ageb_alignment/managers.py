@@ -1,3 +1,5 @@
+import json
+
 from pathlib import Path
 from typing import Union
 
@@ -50,6 +52,8 @@ class PathIOManager(BaseManager):
 
 
 class DataFrameIOManager(BaseManager):
+    with_index: bool=True
+
     def _is_geodataframe(self):
         return self.extension in (".gpkg", ".geojson")
 
@@ -60,9 +64,9 @@ class DataFrameIOManager(BaseManager):
         if self._is_geodataframe():
             obj.to_file(out_path, mode="w")
         else:
-            obj.to_csv(out_path)
+            obj.to_csv(out_path, index=self.with_index)
 
-    def load_input(self, context: InputContext) -> gpd.GeoDataFrame:
+    def load_input(self, context: InputContext) -> gpd.GeoDataFrame | pd.DataFrame | dict[str, gpd.GeoDataFrame] | dict[str, pd.DataFrame]:
         path = self._get_path(context)
         if isinstance(path, Path):
             if self._is_geodataframe():
@@ -77,3 +81,29 @@ class DataFrameIOManager(BaseManager):
                 else:
                     out_dict[key] = pd.read_csv(fpath)
             return out_dict
+        else:
+            err = f"PathIOManager: {path} is not a Path or dict"
+            raise TypeError(err)
+
+
+class JSONIOManager(BaseManager):
+    def handle_output(self, context: OutputContext, obj: dict) -> None:
+        out_path = self._get_path(context)
+        out_path.parent.mkdir(exist_ok=True, parents=True)
+        with open(out_path, "w") as f:
+            json.dump(obj, f)
+
+    def load_input(self, context: InputContext) -> dict:
+        path = self._get_path(context)
+        if isinstance(path, Path):
+            with open(path, "r") as f:
+                return json.load(f)
+        elif isinstance(path, dict):
+            out_dict = {}
+            for key, fpath in path.items():
+                with open(fpath, "r") as f:
+                    out_dict[key] = json.load(f)
+            return out_dict
+        else:
+            err = f"PathIOManager: {path} is not a Path or dict"
+            raise TypeError(err)

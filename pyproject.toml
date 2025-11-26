@@ -43,7 +43,6 @@ build-backend = "poetry.core.masonry.api"
 module_name = "ageb_alignment.definitions"
 code_location_name = "ageb_alignment"
 
-
 [tool.basedpyright]
 typeCheckingMode = "standard"
 ignore = ["**/*.ipynb"]

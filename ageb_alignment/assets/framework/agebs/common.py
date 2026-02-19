@@ -1,22 +1,24 @@
+from pathlib import Path
+
 import geopandas as gpd
 
 from ageb_alignment.resources import PathResource
 from dagster import (
-    graph_asset,
-    op,
-    AssetsDefinition,
     AssetIn,
+    AssetsDefinition,
     OpDefinition,
     OpExecutionContext,
     Out,
+    graph_asset,
+    op,
 )
-from pathlib import Path
 
 
 def load_manual_agebs_factory(year: int) -> OpDefinition:
     @op(name=f"load_manual_agebs_{year}")
     def _op(
-        context: OpExecutionContext, path_resource: PathResource
+        context: OpExecutionContext,
+        path_resource: PathResource,
     ) -> gpd.GeoDataFrame | None:
         manual_path = Path(path_resource.manual_path) / f"framework_replace/{year}.gpkg"
         if manual_path.exists():

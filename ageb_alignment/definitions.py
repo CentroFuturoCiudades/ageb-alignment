@@ -1,4 +1,3 @@
-import os
 import toml
 
 from ageb_alignment.assets import (
@@ -13,32 +12,26 @@ from ageb_alignment.assets import (
     translate,
     zones,
 )
-
-
 from ageb_alignment.jobs import (
     generate_framework_job,
     generate_initial_gcp_job,
     pipeline_1_job,
     pipeline_2_job,
 )
-
 from ageb_alignment.managers import DataFrameIOManager, JSONIOManager, PathIOManager
-
 from ageb_alignment.resources import (
     AgebDictResource,
-    AgebNestedDictResource,
     AgebListResource,
+    AgebNestedDictResource,
     PathResource,
     PreferenceResource,
 )
-
 from dagster import (
-    load_assets_from_modules,
-    load_assets_from_package_module,
     Definitions,
     EnvVar,
+    load_assets_from_modules,
+    load_assets_from_package_module,
 )
-
 
 # Assets
 differences_assets = load_assets_from_modules([differences], group_name="differences")
@@ -56,7 +49,7 @@ path_resource = PathResource(
     ghsl_path=EnvVar("GHSL_GLOBAL_PATH"),
 )
 
-with open("./configs/overlaps.toml", "r", encoding="utf8") as f:
+with open("./configs/overlaps.toml", encoding="utf8") as f:
     overlap_list = toml.load(f)
 overlap_list = {f"ageb_{key}": value for key, value in overlap_list.items()}
 overlap_resource = AgebListResource(**overlap_list)
@@ -68,7 +61,7 @@ remove_from_mun_list = {
 }
 remove_from_mun_resource = AgebDictResource(**remove_from_mun_list)
 
-with open("./configs/preferences.toml", "r", encoding="utf8") as f:
+with open("./configs/preferences.toml", encoding="utf8") as f:
     preferences = toml.load(f)
 preference_resource = PreferenceResource(
     raise_on_deleted_geometries=preferences["raise_on_deleted_geometries"],
@@ -90,7 +83,11 @@ affine_resource = AgebDictResource(**rigid_list)
 # Managers
 gpkg_manager = DataFrameIOManager(path_resource=path_resource, extension=".gpkg")
 geojson_manager = DataFrameIOManager(path_resource=path_resource, extension=".geojson")
-points_manager = DataFrameIOManager(path_resource=path_resource, extension=".points", with_index=False)
+points_manager = DataFrameIOManager(
+    path_resource=path_resource,
+    extension=".points",
+    with_index=False,
+)
 csv_manager = DataFrameIOManager(path_resource=path_resource, extension=".csv")
 json_manager = JSONIOManager(path_resource=path_resource, extension=".json")
 

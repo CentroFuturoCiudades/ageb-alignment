@@ -2,7 +2,6 @@ import os
 
 from dagster import define_asset_job
 
-
 # pylint: disable=assignment-from-no-return
 generate_framework_job = define_asset_job(
     "generate_framework",
@@ -46,7 +45,7 @@ pipeline_2_job = define_asset_job(
                 "multiprocess": {
                     "max_concurrent": int(os.getenv("MAX_CONCURRENT_ASSETS")),
                 },
-            }
-        }
+            },
+        },
     },
 )

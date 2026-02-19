@@ -1,10 +1,10 @@
-import dagster as dg
+from collections.abc import Callable
+from pathlib import Path
+
 import pandas as pd
 
+import dagster as dg
 from ageb_alignment.resources import PathResource
-from pathlib import Path
-from typing import Callable
-
 
 FIELD_NAMES = ("state", "mun", "loc")
 
@@ -16,8 +16,7 @@ def get_census_state(census_iter: pd.DataFrame) -> pd.DataFrame:
         .drop(columns=["NOM_MUN", "CVE_LOC", "NOM_LOC", "CVE_MUN"])
         .assign(CVEGEO=lambda df: df["CVE_ENT"].astype(str).str.zfill(2))
         .set_index("CVEGEO")
-        .sort_index()
-        [["POBTOT"]]
+        .sort_index()[["POBTOT"]]
     )
 
 
@@ -32,8 +31,7 @@ def get_census_mun(census_iter: pd.DataFrame) -> pd.DataFrame:
             CVEGEO=lambda df: df["CVE_ENT"] + df["CVE_MUN"],
         )
         .set_index("CVEGEO")
-        .sort_index()
-        [["POBTOT"]]
+        .sort_index()[["POBTOT"]]
     )
 
 
@@ -45,15 +43,19 @@ def get_census_loc(census_iter: pd.DataFrame) -> pd.DataFrame:
             CVE_ENT=lambda df: df["CVE_ENT"].astype(str).str.zfill(2),
             CVE_MUN=lambda df: df["CVE_MUN"].astype(str).str.zfill(3),
             CVE_LOC=lambda df: df["CVE_LOC"].astype(str).str.zfill(4),
-            CVEGEO=lambda df: df["CVE_ENT"] + df["CVE_MUN"] + df["CVE_LOC"]
+            CVEGEO=lambda df: df["CVE_ENT"] + df["CVE_MUN"] + df["CVE_LOC"],
         )
         .set_index("CVEGEO")
-        .sort_index()
-        [["POBTOT"]]
+        .sort_index()[["POBTOT"]]
     )
 
 
-@dg.op(out={name: dg.Out(is_required=False, io_manager_key="csv_manager") for name in FIELD_NAMES})
+@dg.op(
+    out={
+        name: dg.Out(is_required=False, io_manager_key="csv_manager")
+        for name in FIELD_NAMES
+    },
+)
 def census_dispatcher(context: dg.OpExecutionContext, census_iter: pd.DataFrame):
     if "state" in context.selected_output_names:
         yield dg.Output(get_census_state(census_iter), output_name="state")
@@ -91,7 +93,7 @@ def load_census_iter_1990(path_resource: PathResource) -> pd.DataFrame:
                 "loc": "CVE_LOC",
                 "nom_loc": "NOM_LOC",
                 "p_total": "POBTOT",
-            }
+            },
         )
         .dropna()
         .assign(POBTOT=lambda df: df.POBTOT.astype(int))
@@ -140,7 +142,6 @@ def load_census_iter_2010_2020(census_path: Path) -> pd.DataFrame:
         )
         .rename(columns={"ENTIDAD": "CVE_ENT", "MUN": "CVE_MUN", "LOC": "CVE_LOC"})
         .query("CVE_ENT != 0")
-
     )
     return census
 
@@ -160,7 +161,9 @@ def load_census_iter_2020(path_resource: PathResource) -> pd.DataFrame:
 def iter_factory(year: int, loading_func: Callable):
     @dg.graph_multi_asset(
         name=f"census_{year}",
-        outs={name: dg.AssetOut(key=["census", str(year), name]) for name in FIELD_NAMES},
+        outs={
+            name: dg.AssetOut(key=["census", str(year), name]) for name in FIELD_NAMES
+        },
         group_name=f"census_{year}",
         can_subset=True,
     )
@@ -171,4 +174,15 @@ def iter_factory(year: int, loading_func: Callable):
     return _asset
 
 
-dassets = [iter_factory(year, f) for year, f in zip([1990, 2000, 2010, 2020], [load_census_iter_1990, load_census_iter_2000, load_census_iter_2010, load_census_iter_2020])]
+dassets = [
+    iter_factory(year, f)
+    for year, f in zip(
+        [1990, 2000, 2010, 2020],
+        [
+            load_census_iter_1990,
+            load_census_iter_2000,
+            load_census_iter_2010,
+            load_census_iter_2020,
+        ],
+    )
+]

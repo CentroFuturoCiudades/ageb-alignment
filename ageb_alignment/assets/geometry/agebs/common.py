@@ -1,7 +1,7 @@
-import dagster as dg
 import geopandas as gpd
 import numpy as np
 
+import dagster as dg
 from ageb_alignment.resources import AgebListResource
 
 
@@ -42,6 +42,5 @@ def fix_overlapped_op_factory(year: int) -> dg.OpDefinition:
             agebs = fix_overlapped(agebs, overlapped)
 
         return agebs[["geometry"]]
-
 
     return _op

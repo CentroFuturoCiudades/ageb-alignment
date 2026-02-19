@@ -1,10 +1,11 @@
-import dagster as dg
+from pathlib import Path
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 
+import dagster as dg
 from ageb_alignment.resources import PathResource
-from pathlib import Path
 
 
 def get_tcma(x0, x1, num_years):
@@ -56,7 +57,7 @@ def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
                 "Tasa de crecimiento medio anual  2000-2010",
                 "Tasa de crecimiento medio anual  2010-2020",
                 "Superficie km2",
-            ]
+            ],
         )
         .rename(
             columns={
@@ -68,18 +69,24 @@ def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
                 "Población 2010": "POB_TOT_2010",
                 "Población 2020": "POB_TOT_2020",
                 "Densidad media urbana": "PWDENSITY_URB_2020",
-            }
+            },
         )
         .assign(
             CVEGEO=lambda x: x.CVEGEO.astype(str).str.pad(5, side="left", fillchar="0"),
             TCMA_TOT_1990_2000=lambda x: get_tcma(
-                x["POB_TOT_1990"], x["POB_TOT_2000"], 10
+                x["POB_TOT_1990"],
+                x["POB_TOT_2000"],
+                10,
             ).replace(np.inf, np.nan),
             TCMA_TOT_2000_2010=lambda x: get_tcma(
-                x["POB_TOT_2000"], x["POB_TOT_2010"], 10
+                x["POB_TOT_2000"],
+                x["POB_TOT_2010"],
+                10,
             ).replace(np.inf, np.nan),
             TCMA_TOT_2010_2020=lambda x: get_tcma(
-                x["POB_TOT_2010"], x["POB_TOT_2020"], 10
+                x["POB_TOT_2010"],
+                x["POB_TOT_2020"],
+                10,
             ).replace(np.inf, np.nan),
         )
         .set_index(["CVE_MET", "CVEGEO"])
@@ -95,16 +102,16 @@ def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
                 "Clave de la entidad",
                 "Clave de municipio",
                 "Nombre del municipio",
-            ]
+            ],
         )
         .rename(
             columns={
                 "Clave de metrópoli": "CVE_MET",
                 "Clave compuesta del municipio": "CVEGEO",
-            }
+            },
         )
         .assign(
-            CVEGEO=lambda x: x.CVEGEO.astype(str).str.pad(5, side="left", fillchar="0")
+            CVEGEO=lambda x: x.CVEGEO.astype(str).str.pad(5, side="left", fillchar="0"),
         )
         .set_index(["CVE_MET", "CVEGEO"])
         .replace("●", "1")
@@ -145,7 +152,7 @@ def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
                 "más habitantes",
                 "Municipios centrales. Localidad o conurbación de 50 mil o "
                 "más habitantes",
-            ]
+            ],
         )
     )
 
@@ -160,7 +167,7 @@ def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
         "metropoli_2020": dg.AssetIn(key=["metropoli", "2020"]),
         "metropoli_table": dg.AssetIn(key=["metropoli", "table"]),
     },
-    io_manager_key="json_manager"
+    io_manager_key="json_manager",
 )
 def metropoli_list(
     metropoli_2020: gpd.GeoDataFrame,
@@ -186,5 +193,3 @@ def metropoli_list(
             zones_mun_dict[zone] = {str(mun).zfill(5)}
 
     return {k: list(v) for k, v in zones_mun_dict.items()}
-
-

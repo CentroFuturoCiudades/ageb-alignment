@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import assert_never
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -5,16 +8,14 @@ import pandas as pd
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource, PreferenceResource
 from dagster import (
-    graph_multi_asset,
-    op,
     AssetIn,
     AssetOut,
     OpExecutionContext,
     Out,
     Output,
+    graph_multi_asset,
+    op,
 )
-from pathlib import Path
-from typing import assert_never
 
 
 @op
@@ -26,7 +27,6 @@ def load_mesh(
     agebs_2010: gpd.GeoDataFrame,
     agebs_2020: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
-
     all_bounds = np.empty((4, 4), dtype=float)
     for i, agebs in enumerate((agebs_1990, agebs_2000, agebs_2010, agebs_2020)):
         all_bounds[i] = agebs.to_crs("EPSG:6365").total_bounds
@@ -51,7 +51,8 @@ def load_mesh(
 
 
 def reproject_to_mesh(
-    mesh: gpd.GeoDataFrame, agebs: gpd.GeoDataFrame
+    mesh: gpd.GeoDataFrame,
+    agebs: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     assert mesh.crs == agebs.crs
 
@@ -81,10 +82,12 @@ for year in (1990, 2000, 2010, 2020):
         assert_never(year)
 
     outs[f"reprojected_{year}"] = AssetOut(
-        key=["reprojected", "base", str(year)], io_manager_key="gpkg_manager"
+        key=["reprojected", "base", str(year)],
+        io_manager_key="gpkg_manager",
     )
     op_outs[f"reprojected_{year}"] = Out(
-        is_required=False, io_manager_key="gpkg_manager"
+        is_required=False,
+        io_manager_key="gpkg_manager",
     )
 
 

@@ -4,11 +4,11 @@ import pandas as pd
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import AgebDictResource
 from dagster import (
-    asset,
     AllPartitionMapping,
-    AssetsDefinition,
     AssetExecutionContext,
     AssetIn,
+    AssetsDefinition,
+    asset,
 )
 
 
@@ -20,7 +20,7 @@ def zones_switched_factory(year: int) -> AssetsDefinition:
             "all_agebs": AssetIn(
                 key=["zone_agebs", "initial", str(year)],
                 partition_mapping=AllPartitionMapping(),
-            )
+            ),
         },
         io_manager_key="geojson_manager",
         partitions_def=zone_partitions,
@@ -50,7 +50,7 @@ def zones_switched_factory(year: int) -> AssetsDefinition:
                     giver_agebs = giver_df[giver_df["CVEGEO"].isin(wanted_agebs)]
                     agebs = pd.concat([agebs, giver_agebs])
                     context.log.info(
-                        f"Received AGEBs {wanted_agebs} from zone {giver}."
+                        f"Received AGEBs {wanted_agebs} from zone {giver}.",
                     )
 
         return agebs

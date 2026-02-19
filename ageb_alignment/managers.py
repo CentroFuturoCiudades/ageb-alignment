@@ -1,7 +1,5 @@
 import json
-
 from pathlib import Path
-from typing import Union
 
 import geopandas as gpd
 import pandas as pd
@@ -20,8 +18,9 @@ class BaseManager(ConfigurableIOManager):
     extension: str
 
     def _get_path(
-        self, context: Union[InputContext, OutputContext]
-    ) -> Union[Path, dict[str, Path]]:
+        self,
+        context: InputContext | OutputContext,
+    ) -> Path | dict[str, Path]:
         out_path = Path(self.path_resource.out_path)
         fpath = out_path / "/".join(context.asset_key.path)
 
@@ -52,7 +51,7 @@ class PathIOManager(BaseManager):
 
 
 class DataFrameIOManager(BaseManager):
-    with_index: bool=True
+    with_index: bool = True
 
     def _is_geodataframe(self):
         return self.extension in (".gpkg", ".geojson")
@@ -66,14 +65,21 @@ class DataFrameIOManager(BaseManager):
         else:
             obj.to_csv(out_path, index=self.with_index)
 
-    def load_input(self, context: InputContext) -> gpd.GeoDataFrame | pd.DataFrame | dict[str, gpd.GeoDataFrame] | dict[str, pd.DataFrame]:
+    def load_input(
+        self,
+        context: InputContext,
+    ) -> (
+        gpd.GeoDataFrame
+        | pd.DataFrame
+        | dict[str, gpd.GeoDataFrame]
+        | dict[str, pd.DataFrame]
+    ):
         path = self._get_path(context)
         if isinstance(path, Path):
             if self._is_geodataframe():
                 return gpd.read_file(path)
-            else:
-                return pd.read_csv(path)
-        elif isinstance(path, dict):
+            return pd.read_csv(path)
+        if isinstance(path, dict):
             out_dict = {}
             for key, fpath in path.items():
                 if self._is_geodataframe():
@@ -81,9 +87,8 @@ class DataFrameIOManager(BaseManager):
                 else:
                     out_dict[key] = pd.read_csv(fpath)
             return out_dict
-        else:
-            err = f"PathIOManager: {path} is not a Path or dict"
-            raise TypeError(err)
+        err = f"PathIOManager: {path} is not a Path or dict"
+        raise TypeError(err)
 
 
 class JSONIOManager(BaseManager):
@@ -96,12 +101,12 @@ class JSONIOManager(BaseManager):
     def load_input(self, context: InputContext) -> dict:
         path = self._get_path(context)
         if isinstance(path, Path):
-            with open(path, "r") as f:
+            with open(path) as f:
                 return json.load(f)
         elif isinstance(path, dict):
             out_dict = {}
             for key, fpath in path.items():
-                with open(fpath, "r") as f:
+                with open(fpath) as f:
                     out_dict[key] = json.load(f)
             return out_dict
         else:

@@ -7,10 +7,13 @@ from dagster import op
 
 @op
 def merge_agebs_1990(
-    geometry_ageb_1990: gpd.GeoDataFrame, ageb_1990: pd.DataFrame
+    geometry_ageb_1990: gpd.GeoDataFrame,
+    ageb_1990: pd.DataFrame,
 ) -> gpd.GeoDataFrame:
     geometry_ageb_1990 = geometry_ageb_1990.set_index("CVEGEO")
-    ageb_1990 = ageb_1990.assign(CVEGEO=lambda df: df["CVEGEO"].astype(str).str.zfill(13)).set_index("CVEGEO")
+    ageb_1990 = ageb_1990.assign(
+        CVEGEO=lambda df: df["CVEGEO"].astype(str).str.zfill(13),
+    ).set_index("CVEGEO")
 
     merged = (
         geometry_ageb_1990.join(ageb_1990, how="left")

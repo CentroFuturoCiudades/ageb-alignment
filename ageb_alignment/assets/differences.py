@@ -1,8 +1,9 @@
+from itertools import combinations
+
 import geopandas as gpd
 
 from ageb_alignment.partitions import zone_partitions
-from dagster import asset, AssetIn, AssetsDefinition
-from itertools import combinations
+from dagster import AssetIn, AssetsDefinition, asset
 
 
 # pylint: disable=deprecated-method

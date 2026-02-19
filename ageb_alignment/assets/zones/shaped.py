@@ -1,12 +1,12 @@
 import os
 import subprocess
+from pathlib import Path
 
 import geopandas as gpd
 
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource, PreferenceResource
-from dagster import asset, AssetIn, AssetExecutionContext
-from pathlib import Path
+from dagster import AssetExecutionContext, AssetIn, asset
 
 
 def zone_agebs_shaped_factory(year: int) -> asset:
@@ -17,7 +17,7 @@ def zone_agebs_shaped_factory(year: int) -> asset:
             "ageb_path": AssetIn(
                 key=["zone_agebs", "initial", str(year)],
                 input_manager_key="path_geojson_manager",
-            )
+            ),
         },
         partitions_def=zone_partitions,
         io_manager_key="gpkg_manager",
@@ -38,7 +38,7 @@ def zone_agebs_shaped_factory(year: int) -> asset:
 
         if os.name == "nt":
             shell = True
-            quote = ''
+            quote = ""
         else:
             shell = False
             quote = ""
@@ -68,8 +68,7 @@ def zone_agebs_shaped_factory(year: int) -> asset:
         if len(df) != len(df_orig):
             if preference_resource.raise_on_deleted_geometries:
                 raise Exception("Geometries were deleted.")
-            else:
-                context.log.warning(f"Geometries for zone {zone} were deleted.")
+            context.log.warning(f"Geometries for zone {zone} were deleted.")
 
         df = df.to_crs("EPSG:6372")
         return df

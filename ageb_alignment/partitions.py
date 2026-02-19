@@ -1,6 +1,5 @@
 from dagster import StaticPartitionsDefinition
 
-
 zone_partitions = StaticPartitionsDefinition(
     [
         "01.1.01",
@@ -72,5 +71,5 @@ zone_partitions = StaticPartitionsDefinition(
         "30.1.07",
         "31.1.01",
         "32.1.01",
-    ]
+    ],
 )

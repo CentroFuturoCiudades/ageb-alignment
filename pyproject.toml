@@ -1,47 +1,22 @@
-[tool.poetry]
+[project]
 name = "ageb-alignment"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Add your description here"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-dagster = "^1.8.10"
-dagster-webserver = "^1.8.10"
-geopandas = "^1.0.1"
-pandas = "^2.2.3"
-networkx = "^3.3"
-openpyxl = "^3.1.5"
-fiona = "^1.10.1"
-toml = "^0.10.2"
-gdal = [
-    { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp310-cp310-win_amd64.whl", platform = "win32", python = ">=3.10,<3.11"},
-    { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp311-cp311-win_amd64.whl", platform = "win32", python = ">=3.11,<3.12"},
-    { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp312-cp312-win_amd64.whl", platform = "win32", python = ">=3.12,<3.13"},
-    { version = "3.8.4", platform = "linux", source = "pypi" },
-    { version = "3.8.4", platform = "darwin", source = "pypi" }
+requires-python = ">=3.12"
+dependencies = [
+    "dagster>=1.12.14",
+    "dagster-dg-cli>=1.12.14",
+    "dagster-webserver>=1.12.14",
+    "geopandas>=1.1.2",
+    "numpy>=2.4.2",
+    "pandas>=3.0.1",
+    "shapely>=2.1.2",
 ]
-rasterio = "^1.4.3"
-numpy = "^1.26.4"
-pandas-stubs = "^2.2.3.250308"
-scipy = "^1.15.3"
-matplotlib = "^3.10.3"
-seaborn = "^0.13.2"
-contextily = "^1.6.2"
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.0.1"
-ipykernel = "^6.29.5"
-python-dotenv = "^1.1.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.dagster]
-module_name = "ageb_alignment.definitions"
-code_location_name = "ageb_alignment"
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D"]
 
 [tool.basedpyright]
 typeCheckingMode = "standard"

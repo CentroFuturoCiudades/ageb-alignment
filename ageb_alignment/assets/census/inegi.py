@@ -1,8 +1,9 @@
-import dagster as dg
+from pathlib import Path
+
 import pandas as pd
 
+import dagster as dg
 from ageb_alignment.resources import PathResource
-from pathlib import Path
 
 
 def load_all_census_files_factory(year: int) -> dg.OpDefinition:
@@ -37,47 +38,53 @@ def load_all_census_files_factory(year: int) -> dg.OpDefinition:
                         "LOC": "CVE_LOC",
                         "AGEB": "CVE_AGEB",
                         "MZA": "CVE_MZA",
-                    }
+                    },
                 )
             )
             df.append(temp)
         return pd.concat(df)
+
     return _op
 
 
-load_all_census_files_ops = {year: load_all_census_files_factory(year) for year in (2010, 2020)}
+load_all_census_files_ops = {
+    year: load_all_census_files_factory(year) for year in (2010, 2020)
+}
 
 
 @dg.op(out=dg.Out(io_manager_key="csv_manager"))
 def get_agebs_from_census(df: pd.DataFrame) -> pd.DataFrame:
     return (
-        df
-        .query("(CVE_MZA == 0) & (CVE_AGEB != '0000') & (CVE_AGEB != '0')")
+        df.query("(CVE_MZA == 0) & (CVE_AGEB != '0000') & (CVE_AGEB != '0')")
         .drop(columns=["CVE_MZA"])
         .assign(
             CVE_ENT=lambda df: df["CVE_ENT"].astype(str).str.zfill(2),
             CVE_MUN=lambda df: df["CVE_MUN"].astype(str).str.zfill(3),
             CVE_LOC=lambda df: df["CVE_LOC"].astype(str).str.zfill(4),
             CVE_AGEB=lambda df: df["CVE_AGEB"].astype(str).str.zfill(4),
-            CVEGEO=lambda df: df["CVE_ENT"] + df["CVE_MUN"] + df["CVE_LOC"] + df["CVE_AGEB"],
+            CVEGEO=lambda df: df["CVE_ENT"]
+            + df["CVE_MUN"]
+            + df["CVE_LOC"]
+            + df["CVE_AGEB"],
         )
         .set_index("CVEGEO")
         .sort_index()
-        .drop(columns=["CVE_ENT", "CVE_MUN", "CVE_LOC", "CVE_AGEB", "NOM_ENT", "NOM_MUN"])
+        .drop(
+            columns=["CVE_ENT", "CVE_MUN", "CVE_LOC", "CVE_AGEB", "NOM_ENT", "NOM_MUN"],
+        )
     )
 
 
 @dg.op(out=dg.Out(io_manager_key="csv_manager"))
 def get_blocks_from_census(df: pd.DataFrame) -> pd.DataFrame:
     return (
-        df
-        .query("CVE_MZA != 0")
+        df.query("CVE_MZA != 0")
         .assign(
             CVEGEO=lambda df: df.CVE_ENT.astype(str).str.pad(2, "left", "0")
             + df.CVE_MUN.astype(str).str.pad(3, "left", "0")
             + df.CVE_LOC.astype(str).str.pad(4, "left", "0")
             + df.CVE_AGEB.astype(str).str.pad(4, "left", "0")
-            + df.CVE_MZA.astype(str).str.pad(3, "left", "0")
+            + df.CVE_MZA.astype(str).str.pad(3, "left", "0"),
         )
         .set_index("CVEGEO")
         .sort_index()
@@ -88,8 +95,8 @@ def get_blocks_from_census(df: pd.DataFrame) -> pd.DataFrame:
 @dg.op(
     out={
         "ageb": dg.Out(is_required=False, io_manager_key="csv_manager"),
-        "blocks": dg.Out(is_required=False, io_manager_key="csv_manager")
-    }
+        "blocks": dg.Out(is_required=False, io_manager_key="csv_manager"),
+    },
 )
 def agebs_blocks_dispatcher(context: dg.OpExecutionContext, census: pd.DataFrame):
     if "ageb" in context.selected_output_names:
@@ -114,8 +121,9 @@ def inegi_factory(year: int) -> dg.AssetsDefinition:
         ageb, blocks = agebs_blocks_dispatcher(df)
         return {
             "agebs": ageb,
-            "blocks": blocks
+            "blocks": blocks,
         }
+
     return _asset
 
 

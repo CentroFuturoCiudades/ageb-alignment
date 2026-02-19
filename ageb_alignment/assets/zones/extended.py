@@ -1,10 +1,9 @@
-import shapely
-
 import geopandas as gpd
 import pandas as pd
+import shapely
 
 from ageb_alignment.partitions import zone_partitions
-from dagster import asset, AssetIn, AssetsDefinition
+from dagster import AssetIn, AssetsDefinition, asset
 
 
 def get_outer_polygon(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -25,7 +24,10 @@ def get_outer_polygon(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
                 max_poly = poly
 
     series = gpd.GeoDataFrame(
-        ["OUT"], columns=["CVEGEO"], geometry=[max_poly], crs=gdf.crs
+        ["OUT"],
+        columns=["CVEGEO"],
+        geometry=[max_poly],
+        crs=gdf.crs,
     )
     return series
 

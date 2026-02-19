@@ -40,7 +40,8 @@ def replace_geoms(
         if isinstance(old_id, str):
             # This is a one to one or one to many relation
             gdf_old.loc[old_id, "geometry"] = gdf_new.loc[
-                new_ids, "geometry"
+                new_ids,
+                "geometry",
             ].union_all()
         elif isinstance(old_id, list):
             # This is many to one relation or many to many

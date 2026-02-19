@@ -1,12 +1,12 @@
 import tempfile
+from pathlib import Path
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+from osgeo import gdal
 
 from dagster import AssetExecutionContext
-from osgeo import gdal
-from pathlib import Path
 
 gdal.UseExceptions()
 
@@ -20,7 +20,9 @@ def generate_options_str(gcp: np.ndarray, transform_options: str) -> str:
 
 def load_gcp(gcp_path: Path) -> np.ndarray:
     points = pd.read_csv(
-        gcp_path, usecols=["sourceX", "sourceY", "mapX", "mapY"], header=1
+        gcp_path,
+        usecols=["sourceX", "sourceY", "mapX", "mapY"],
+        header=1,
     )
     points = points[
         ["sourceX", "sourceY", "mapX", "mapY"]
@@ -37,9 +39,10 @@ def translate_geometries_single(ageb_path: Path, options: str) -> gpd.GeoDataFra
 
 
 def translate_geometries_double(
-    ageb_path: Path, options_first: str, options_second: str
+    ageb_path: Path,
+    options_first: str,
+    options_second: str,
 ) -> gpd.GeoDataFrame:
-
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
         temp_path = temp_dir / "df_temp.gpkg"
@@ -67,6 +70,6 @@ def get_gcp_fallback(
         options = "-order 1"
         infix = "automatic"
     context.log.info(
-        f"Used {infix} GCP for {context.partition_key}/{year} with {options}."
+        f"Used {infix} GCP for {context.partition_key}/{year} with {options}.",
     )
     return gcp, options

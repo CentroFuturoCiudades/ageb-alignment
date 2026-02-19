@@ -1,12 +1,12 @@
-import rasterio.mask
+from pathlib import Path
 
 import geopandas as gpd
 import rasterio as rio
+import rasterio.mask
 
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource
-from dagster import asset, AssetIn
-from pathlib import Path
+from dagster import AssetIn, asset
 
 
 def built_up_area_factory(year: int):
@@ -18,7 +18,8 @@ def built_up_area_factory(year: int):
         io_manager_key="gpkg_manager",
     )
     def _asset(
-        path_resource: PathResource, polygons: gpd.GeoDataFrame
+        path_resource: PathResource,
+        polygons: gpd.GeoDataFrame,
     ) -> gpd.GeoDataFrame:
         built_path = Path(path_resource.ghsl_path) / f"BUILT_100/{year}.tif"
 

@@ -1,11 +1,10 @@
-import shapely
-
 import geopandas as gpd
 import networkx as nx
 import pandas as pd
+import shapely
 
 from ageb_alignment.partitions import zone_partitions
-from dagster import graph_asset, op, AssetsDefinition, AssetIn, Out
+from dagster import AssetIn, AssetsDefinition, Out, graph_asset, op
 
 
 @op

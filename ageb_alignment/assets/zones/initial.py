@@ -1,11 +1,8 @@
-import dagster as dg
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 
+import dagster as dg
 from ageb_alignment.partitions import zone_partitions
-from ageb_alignment.resources import AgebDictResource
-
 
 # def _remove_not_in_mun(gdf: gpd.GeoDataFrame, mun_gdf: gpd.GeoDataFrame):
 #     """Removes geometries in gdf not intersecting municipalities in mun_gdf."""
@@ -131,11 +128,13 @@ def zone_agebs_factory(year: int) -> dg.AssetsDefinition:
         zone = context.partition_key
         mun_list = metropoli_list[zone]
 
-        muns_in_zone = municipalities_2020[
-            municipalities_2020["CVEGEO"].isin(mun_list)
-        ]
+        muns_in_zone = municipalities_2020[municipalities_2020["CVEGEO"].isin(mun_list)]
 
-        wanted_idx = agebs.sjoin(muns_in_zone[["geometry"]], how="inner", predicate="intersects").index.unique()
+        wanted_idx = agebs.sjoin(
+            muns_in_zone[["geometry"]],
+            how="inner",
+            predicate="intersects",
+        ).index.unique()
 
         out = agebs.loc[wanted_idx]
         return remove_multipoly(out).to_crs("EPSG:4326")

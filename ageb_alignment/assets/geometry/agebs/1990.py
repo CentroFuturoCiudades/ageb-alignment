@@ -1,11 +1,11 @@
+from pathlib import Path
+
 import geopandas as gpd
 import pandas as pd
 
 from ageb_alignment.assets.geometry.agebs.common import fix_overlapped_op_factory
 from ageb_alignment.resources import PathResource
-from dagster import graph_asset, op, AssetIn
-from pathlib import Path
-
+from dagster import AssetIn, graph_asset, op
 
 fix_overlapped_1990 = fix_overlapped_op_factory(1990)
 
@@ -100,9 +100,11 @@ def reassign_doubles(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         exploded.loc[exists_other].union(gdf.loc[exists_other], align=True).values
     )
 
-    return gpd.GeoDataFrame(pd.concat(
-        [gdf.drop(doubles_idx + exists_other).copy(), exploded]
-    ).sort_index())
+    return gpd.GeoDataFrame(
+        pd.concat(
+            [gdf.drop(doubles_idx + exists_other).copy(), exploded],
+        ).sort_index(),
+    )
 
 
 @op
@@ -127,7 +129,7 @@ def remove_overlapped(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         [
             exploded.loc[idx].iloc[idx_map[x] : idx_map[x] + 1]
             for idx, x in overlapped.items()
-        ]
+        ],
     )
 
     gdf.loc[new_geoms.index] = new_geoms
@@ -137,7 +139,8 @@ def remove_overlapped(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 @op
 def substitute_agebs(
-    agebs_1990: gpd.GeoDataFrame, agebs_2000: gpd.GeoDataFrame
+    agebs_1990: gpd.GeoDataFrame,
+    agebs_2000: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     agebs_2000 = agebs_2000.set_index("CVEGEO")
 

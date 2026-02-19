@@ -1,5 +1,4 @@
 from dagster import ConfigurableResource
-from typing import Optional
 
 
 class PreferenceResource(ConfigurableResource):
@@ -15,21 +14,21 @@ class PathResource(ConfigurableResource):
 
 
 class AgebListResource(ConfigurableResource):
-    ageb_1990: Optional[list[list[str]]] = None
-    ageb_2000: Optional[list[list[str]]] = None
-    ageb_2010: Optional[list[list[str]]] = None
-    ageb_2020: Optional[list[list[str]]] = None
+    ageb_1990: list[list[str]] | None = None
+    ageb_2000: list[list[str]] | None = None
+    ageb_2010: list[list[str]] | None = None
+    ageb_2020: list[list[str]] | None = None
 
 
 class AgebDictResource(ConfigurableResource):
-    ageb_1990: Optional[dict[str, list]] = None
-    ageb_2000: Optional[dict[str, list]] = None
-    ageb_2010: Optional[dict[str, list]] = None
-    ageb_2020: Optional[dict[str, list]] = None
+    ageb_1990: dict[str, list] | None = None
+    ageb_2000: dict[str, list] | None = None
+    ageb_2010: dict[str, list] | None = None
+    ageb_2020: dict[str, list] | None = None
 
 
 class AgebNestedDictResource(ConfigurableResource):
-    ageb_1990: Optional[dict[str, dict[str, list]]] = None
-    ageb_2000: Optional[dict[str, dict[str, list]]] = None
-    ageb_2010: Optional[dict[str, dict[str, list]]] = None
-    ageb_2020: Optional[dict[str, dict[str, list]]] = None
+    ageb_1990: dict[str, dict[str, list]] | None = None
+    ageb_2000: dict[str, dict[str, list]] | None = None
+    ageb_2010: dict[str, dict[str, list]] | None = None
+    ageb_2020: dict[str, dict[str, list]] | None = None

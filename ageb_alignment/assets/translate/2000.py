@@ -1,7 +1,9 @@
-import dagster as dg
+from pathlib import Path
+
 import geopandas as gpd
 import pandas as pd
 
+import dagster as dg
 from ageb_alignment.assets.translate.common import (
     generate_options_str,
     get_gcp_fallback,
@@ -9,7 +11,6 @@ from ageb_alignment.assets.translate.common import (
 )
 from ageb_alignment.partitions import zone_partitions
 from ageb_alignment.resources import PathResource
-from pathlib import Path
 
 
 def translated_factory(year: int) -> dg.AssetsDefinition:
@@ -18,7 +19,8 @@ def translated_factory(year: int) -> dg.AssetsDefinition:
         key_prefix=["zone_agebs", "translated"],
         ins={
             "ageb_path": dg.AssetIn(
-                ["zone_agebs", "shaped", str(year)], input_manager_key="path_gpkg_manager"
+                ["zone_agebs", "shaped", str(year)],
+                input_manager_key="path_gpkg_manager",
             ),
             "gcp_automatic": dg.AssetIn(key=["gcp", str(year)]),
         },
@@ -37,7 +39,10 @@ def translated_factory(year: int) -> dg.AssetsDefinition:
             Path(path_resource.manual_path) / "gcp" / str(year) / f"{zone}.points"
         )
         gcp, transform_options = get_gcp_fallback(
-            gcp_final_path, gcp_automatic, context, year
+            gcp_final_path,
+            gcp_automatic,
+            context,
+            year,
         )
 
         options_str = generate_options_str(gcp, transform_options)

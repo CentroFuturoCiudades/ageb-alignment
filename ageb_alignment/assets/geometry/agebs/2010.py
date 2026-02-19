@@ -1,10 +1,10 @@
+from pathlib import Path
+
 import geopandas as gpd
 
 from ageb_alignment.assets.geometry.agebs.common import fix_overlapped_op_factory
 from ageb_alignment.resources import PathResource
 from dagster import graph_asset, op
-from pathlib import Path
-
 
 fix_overlapped_2010 = fix_overlapped_op_factory(2010)
 

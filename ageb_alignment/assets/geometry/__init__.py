@@ -1,8 +1,8 @@
 from ageb_alignment.assets.geometry import agebs, blocks, loc, mun, state
 from dagster import (
+    Definitions,
     load_assets_from_modules,
     load_assets_from_package_module,
-    Definitions,
 )
 
 defs = Definitions(
@@ -12,5 +12,5 @@ defs = Definitions(
         + load_assets_from_modules([mun], group_name="geometry_mun")
         + load_assets_from_modules([state], group_name="geometry_state")
         + load_assets_from_modules([blocks], group_name="geometry_blocks")
-    )
+    ),
 )

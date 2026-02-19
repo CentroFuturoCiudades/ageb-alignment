@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Any
 
 import geopandas as gpd
 import pandas as pd
@@ -41,23 +42,36 @@ class BaseManager(ConfigurableIOManager):
 
 
 class PathIOManager(BaseManager):
-    def handle_output(self, context: OutputContext, obj) -> None:
+    def handle_output(self, context: OutputContext, obj: Any) -> None:  # noqa: ANN401
         raise NotImplementedError
 
     def load_input(self, context: InputContext) -> Path:
         path = self._get_path(context)
-        assert path.exists()
+
+        if not isinstance(path, Path):
+            err = f"PathIOManager: {path} is not a Path"
+            raise TypeError(err)
+
+        if not path.exists():
+            err = f"PathIOManager: {path} does not exist"
+            raise FileNotFoundError(err)
+
         return path
 
 
 class DataFrameIOManager(BaseManager):
     with_index: bool = True
 
-    def _is_geodataframe(self):
+    def _is_geodataframe(self) -> bool:
         return self.extension in (".gpkg", ".geojson")
 
     def handle_output(self, context: OutputContext, obj: gpd.GeoDataFrame) -> None:
         out_path = self._get_path(context)
+
+        if not isinstance(out_path, Path):
+            err = f"DataFrameIOManager: {out_path} is not a Path"
+            raise TypeError(err)
+
         out_path.parent.mkdir(exist_ok=True, parents=True)
 
         if self._is_geodataframe():
@@ -94,19 +108,24 @@ class DataFrameIOManager(BaseManager):
 class JSONIOManager(BaseManager):
     def handle_output(self, context: OutputContext, obj: dict) -> None:
         out_path = self._get_path(context)
+
+        if not isinstance(out_path, Path):
+            err = f"JSONIOManager: {out_path} is not a Path"
+            raise TypeError(err)
+
         out_path.parent.mkdir(exist_ok=True, parents=True)
-        with open(out_path, "w") as f:
+        with out_path.open("w") as f:
             json.dump(obj, f)
 
     def load_input(self, context: InputContext) -> dict:
         path = self._get_path(context)
         if isinstance(path, Path):
-            with open(path) as f:
+            with path.open() as f:
                 return json.load(f)
         elif isinstance(path, dict):
             out_dict = {}
             for key, fpath in path.items():
-                with open(fpath) as f:
+                with fpath.open() as f:
                     out_dict[key] = json.load(f)
             return out_dict
         else:

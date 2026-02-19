@@ -5,18 +5,20 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "contextily>=1.7.0",
     "dagster>=1.12.14",
     "dagster-dg-cli>=1.12.14",
     "dagster-webserver>=1.12.14",
     "geopandas>=1.1.2",
     "numpy>=2.4.2",
     "pandas>=3.0.1",
+    "pandas-stubs>=3.0.0.260204",
     "shapely>=2.1.2",
 ]
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D"]
+ignore = ["D", "PLR2004"]
 
 [tool.basedpyright]
 typeCheckingMode = "standard"

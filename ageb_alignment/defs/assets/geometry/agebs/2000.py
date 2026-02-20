@@ -12,7 +12,12 @@ fix_overlapped_2000 = fix_overlapped_op_factory(2000)
 @dg.op
 def load_agebs_2000(path_resource: PathResource) -> gpd.GeoDataFrame:
     ageb_path = (
-        Path(path_resource.raw_path) / "geometry/2000/mgau2000/agebs_urb_2000.dbf"
+        Path(path_resource.data_path)
+        / "initial"
+        / "geometry"
+        / "2000"
+        / "mgau2000"
+        / "agebs_urb_2000.dbf"
     )
     return (
         gpd.read_file(ageb_path)

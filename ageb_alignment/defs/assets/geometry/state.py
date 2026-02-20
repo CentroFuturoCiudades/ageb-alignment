@@ -14,10 +14,15 @@ def read_state(fpath: Path) -> gpd.GeoDataFrame:
     )
 
 
-@asset(key=["geometry", "state", "2000"], io_manager_key="gpkg_manager", group_name="geometry_state")
+@asset(
+    key=["geometry", "state", "2000"],
+    io_manager_key="gpkg_manager",
+    group_name="geometry_state",
+)
 def geometry_state_2000(path_resource: PathResource) -> gpd.GeoDataFrame:
     fpath = (
-        Path(path_resource.raw_path)
+        Path(path_resource.data_path)
+        / "initial"
         / "geometry"
         / "2000"
         / "mge2000"
@@ -26,10 +31,15 @@ def geometry_state_2000(path_resource: PathResource) -> gpd.GeoDataFrame:
     return read_state(fpath)
 
 
-@asset(key=["geometry", "state", "2010"], io_manager_key="gpkg_manager", group_name="geometry_state")
+@asset(
+    key=["geometry", "state", "2010"],
+    io_manager_key="gpkg_manager",
+    group_name="geometry_state",
+)
 def geometry_state_2010(path_resource: PathResource) -> gpd.GeoDataFrame:
     fpath = (
-        Path(path_resource.raw_path)
+        Path(path_resource.data_path)
+        / "initial"
         / "geometry"
         / "2010"
         / "mge2010v5_0"
@@ -38,7 +48,13 @@ def geometry_state_2010(path_resource: PathResource) -> gpd.GeoDataFrame:
     return read_state(fpath)
 
 
-@asset(key=["geometry", "state", "2020"], io_manager_key="gpkg_manager", group_name="geometry_state")
+@asset(
+    key=["geometry", "state", "2020"],
+    io_manager_key="gpkg_manager",
+    group_name="geometry_state",
+)
 def geometry_state_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
-    fpath = Path(path_resource.raw_path) / "geometry" / "2020" / "00ent.shp"
+    fpath = (
+        Path(path_resource.data_path) / "initial" / "geometry" / "2020" / "00ent.shp"
+    )
     return read_state(fpath)

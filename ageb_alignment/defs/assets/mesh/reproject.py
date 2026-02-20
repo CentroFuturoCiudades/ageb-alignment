@@ -30,7 +30,7 @@ def load_mesh(
         all_bounds[:, 3].max(),
     )
 
-    mesh_root_path = Path(path_resource.raw_path) / "mesh"
+    mesh_root_path = Path(path_resource.data_path) / "initial" / "mesh"
     mesh_list: list[gpd.GeoDataFrame] = []
     for path in mesh_root_path.glob(f"nivel{preference_resource.mesh_level}*.shp"):
         df = gpd.read_file(path, engine="pyogrio", bbox=final_bounds)

@@ -36,7 +36,11 @@ def translated_factory(year: int) -> dg.AssetsDefinition:
         zone = context.partition_key
 
         gcp_final_path = (
-            Path(path_resource.manual_path) / "gcp" / str(year) / f"{zone}.points"
+            Path(path_resource.data_path)
+            / "intermediate"
+            / "gcp"
+            / str(year)
+            / f"{zone}.points"
         )
         gcp, transform_options = get_gcp_fallback(
             gcp_final_path,

@@ -17,7 +17,7 @@ class BaseManager(dg.ConfigurableIOManager):
         self,
         context: dg.InputContext | dg.OutputContext,
     ) -> Path | dict[str, Path]:
-        out_path = Path(self.path_resource.out_path)
+        out_path = Path(self.path_resource.data_path) / "final"
         fpath = out_path / "/".join(context.asset_key.path)
 
         if context.has_asset_partitions:

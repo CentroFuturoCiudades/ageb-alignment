@@ -12,7 +12,13 @@ fix_overlapped_1990 = fix_overlapped_op_factory(1990)
 
 @dg.op
 def load_agebs_1990(path_resource: PathResource) -> gpd.GeoDataFrame:
-    agebs_path = Path(path_resource.raw_path) / "geometry/1990/AGEB_s_90_aj.shp"
+    agebs_path = (
+        Path(path_resource.data_path)
+        / "initial"
+        / "geometry"
+        / "1990"
+        / "AGEB_s_90_aj.shp"
+    )
     return (
         gpd.read_file(agebs_path)
         .drop(columns=["OBJECTID"])

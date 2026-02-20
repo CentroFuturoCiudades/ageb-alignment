@@ -6,11 +6,19 @@ from ageb_alignment.defs.resources import PathResource
 from dagster import asset
 
 
-@asset(key=["geometry", "loc", "2010"], io_manager_key="gpkg_manager", group_name="geometry_loc")
+@asset(
+    key=["geometry", "loc", "2010"],
+    io_manager_key="gpkg_manager",
+    group_name="geometry_loc",
+)
 def geometry_loc_2010(path_resource: PathResource) -> gpd.GeoDataFrame:
     fpath = (
-        Path(path_resource.raw_path)
-        / "geometry/2010/mglu2010v5_0/Localidades_urbanas_2010_5.shp"
+        Path(path_resource.data_path)
+        / "initial"
+        / "geometry"
+        / "2010"
+        / "mglu2010v5_0"
+        / "Localidades_urbanas_2010_5.shp"
     )
     return (
         gpd.read_file(fpath)
@@ -25,9 +33,13 @@ def geometry_loc_2010(path_resource: PathResource) -> gpd.GeoDataFrame:
     )
 
 
-@asset(key=["geometry", "loc", "2020"], io_manager_key="gpkg_manager", group_name="geometry_loc")
+@asset(
+    key=["geometry", "loc", "2020"],
+    io_manager_key="gpkg_manager",
+    group_name="geometry_loc",
+)
 def geometry_loc_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
-    fpath = Path(path_resource.raw_path) / "geometry" / "2020" / "00l.shp"
+    fpath = Path(path_resource.data_path) / "initial" / "geometry" / "2020" / "00l.shp"
     return (
         gpd.read_file(fpath)
         .assign(CVEGEO=lambda df: df["CVEGEO"].astype(str).str.zfill(9))

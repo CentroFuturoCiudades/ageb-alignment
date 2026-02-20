@@ -7,9 +7,7 @@ class PreferenceResource(ConfigurableResource):
 
 
 class PathResource(ConfigurableResource):
-    raw_path: str
-    out_path: str
-    manual_path: str
+    data_path: str
     ghsl_path: str
 
 

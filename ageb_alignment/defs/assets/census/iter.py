@@ -67,8 +67,14 @@ def census_dispatcher(context: dg.OpExecutionContext, census_iter: pd.DataFrame)
 
 @dg.op
 def load_census_iter_1990(path_resource: PathResource) -> pd.DataFrame:
-    census_path = Path(path_resource.raw_path) / "census/ITER/ITER_NALTXT90.txt"
-    census = (
+    census_path = (
+        Path(path_resource.data_path)
+        / "initial"
+        / "census"
+        / "ITER"
+        / "ITER_NALTXT90.txt"
+    )
+    return (
         pd.read_csv(
             census_path,
             encoding="iso-8859-1",
@@ -99,13 +105,18 @@ def load_census_iter_1990(path_resource: PathResource) -> pd.DataFrame:
         .assign(POBTOT=lambda df: df.POBTOT.astype(int))
         .query("CVE_ENT != 0")
     )
-    return census
 
 
 @dg.op
 def load_census_iter_2000(path_resource: PathResource) -> pd.DataFrame:
-    census_path = Path(path_resource.raw_path) / "census/ITER/ITER_NALTXT00.txt"
-    census = pd.read_csv(
+    census_path = (
+        Path(path_resource.data_path)
+        / "initial"
+        / "census"
+        / "ITER"
+        / "ITER_NALTXT00.txt"
+    )
+    return pd.read_csv(
         census_path,
         encoding="iso-8859-1",
         sep="\t",
@@ -122,7 +133,6 @@ def load_census_iter_2000(path_resource: PathResource) -> pd.DataFrame:
             "POBTOT",
         ],
     ).query("CVE_ENT != 0")
-    return census
 
 
 def load_census_iter_2010_2020(census_path: Path) -> pd.DataFrame:
@@ -148,13 +158,25 @@ def load_census_iter_2010_2020(census_path: Path) -> pd.DataFrame:
 
 @dg.op
 def load_census_iter_2010(path_resource: PathResource) -> pd.DataFrame:
-    census_path = Path(path_resource.raw_path) / "census/ITER/ITER_NALDBF10.csv"
+    census_path = (
+        Path(path_resource.data_path)
+        / "initial"
+        / "census"
+        / "ITER"
+        / "ITER_NALDBF10.csv"
+    )
     return load_census_iter_2010_2020(census_path)
 
 
 @dg.op
 def load_census_iter_2020(path_resource: PathResource) -> pd.DataFrame:
-    census_path = Path(path_resource.raw_path) / "census/ITER/ITER_NALCSV20.csv"
+    census_path = (
+        Path(path_resource.data_path)
+        / "initial"
+        / "census"
+        / "ITER"
+        / "ITER_NALCSV20.csv"
+    )
     return load_census_iter_2010_2020(census_path)
 
 

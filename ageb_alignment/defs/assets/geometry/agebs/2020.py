@@ -11,7 +11,7 @@ fix_overlapped_2020 = fix_overlapped_op_factory(2020)
 
 @dg.op
 def load_agebs_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
-    in_path = Path(path_resource.raw_path) / "geometry/2020"
+    in_path = Path(path_resource.data_path) / "initial" / "geometry" / "2020"
     return (
         gpd.read_file(in_path / "00a.shp")
         .to_crs("EPSG:6372")

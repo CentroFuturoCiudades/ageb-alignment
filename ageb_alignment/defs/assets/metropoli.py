@@ -28,9 +28,13 @@ def get_tcma(x0, x1, num_years):
     return ((x1 / x0) ** (1 / num_years) - 1) * 100
 
 
-@dg.asset(key=["metropoli", "2020"], io_manager_key="gpkg_manager", group_name="metropoli")
+@dg.asset(
+    key=["metropoli", "2020"],
+    io_manager_key="gpkg_manager",
+    group_name="metropoli",
+)
 def metropoli_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
-    metropoli_path = Path(path_resource.raw_path) / "metropoli/2020"
+    metropoli_path = Path(path_resource.data_path) / "initial" / "metropoli" / "2020"
     return (
         gpd.read_file(metropoli_path)
         .set_index(["CVE_MET", "CVEGEO"])
@@ -39,9 +43,15 @@ def metropoli_2020(path_resource: PathResource) -> gpd.GeoDataFrame:
     )
 
 
-@dg.asset(key=["metropoli", "table"], io_manager_key="csv_manager", group_name="metropoli")
+@dg.asset(
+    key=["metropoli", "table"],
+    io_manager_key="csv_manager",
+    group_name="metropoli",
+)
 def metropoli_table(path_resource: PathResource) -> pd.DataFrame:
-    sheet_path = Path(path_resource.raw_path) / "metropoli/Cuadros_MM2020.xlsx"
+    sheet_path = (
+        Path(path_resource.data_path) / "initial" / "metropoli" / "Cuadros_MM2020.xlsx"
+    )
 
     sheet_a = (
         pd.read_excel(sheet_path, sheet_name="Cuadro A_MUN")

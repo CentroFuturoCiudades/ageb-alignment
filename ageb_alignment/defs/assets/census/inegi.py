@@ -9,7 +9,9 @@ from ageb_alignment.defs.resources import PathResource
 def load_all_census_files_factory(year: int) -> dg.OpDefinition:
     @dg.op(name=f"load_census_op_{year}")
     def _op(path_resource: PathResource) -> pd.DataFrame:
-        census_path = Path(path_resource.raw_path) / f"census/INEGI/{year}"
+        census_path = (
+            Path(path_resource.data_path) / "initial" / "census" / "INEGI" / str(year)
+        )
 
         df = []
         for path in census_path.glob("*.csv"):

@@ -20,7 +20,12 @@ def load_manual_agebs_factory(year: int) -> OpDefinition:
         context: OpExecutionContext,
         path_resource: PathResource,
     ) -> gpd.GeoDataFrame | None:
-        manual_path = Path(path_resource.manual_path) / f"framework_replace/{year}.gpkg"
+        manual_path = (
+            Path(path_resource.data_path)
+            / "intermediate"
+            / "framework_replace"
+            / f"{year}.gpkg"
+        )
         if manual_path.exists():
             msg = f"Loaded framework replace DataFrame for {year}."
             context.log.info(msg)

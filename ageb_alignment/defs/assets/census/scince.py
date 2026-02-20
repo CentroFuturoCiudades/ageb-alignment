@@ -13,7 +13,9 @@ def scince_factory(year: int, pop_col_name: str) -> dg.AssetsDefinition:
         io_manager_key="csv_manager",
     )
     def _asset(path_resource: PathResource) -> pd.DataFrame:
-        census_path = Path(path_resource.raw_path) / f"census/SCINCE/{year}"
+        census_path = (
+            Path(path_resource.data_path) / "initial" / "census" / "SCINCE" / str(year)
+        )
         return (
             pd.concat(
                 [

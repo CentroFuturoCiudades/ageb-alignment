@@ -29,7 +29,7 @@ def zone_agebs_shaped_factory(year: int) -> dg.AssetsDefinition:
         ageb_path: Path,
     ) -> gpd.GeoDataFrame:
         zone = context.partition_key
-        out_root_path = Path(path_resource.out_path)
+        out_root_path = Path(path_resource.data_path) / "final"
 
         out_dir = out_root_path / "/".join(context.asset_key.path)
         out_dir.mkdir(exist_ok=True, parents=True)

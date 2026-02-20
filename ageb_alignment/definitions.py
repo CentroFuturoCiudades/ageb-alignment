@@ -3,13 +3,6 @@ from pathlib import Path
 import toml
 
 import dagster as dg
-from ageb_alignment.defs.assets import (
-    built,
-    differences,
-    gcp,
-    metropoli,
-    translate,
-)
 from ageb_alignment.defs.jobs import (
     generate_framework_job,
     generate_initial_gcp_job,
@@ -29,12 +22,9 @@ from ageb_alignment.defs.resources import (
     PreferenceResource,
 )
 
-
 # Resources
 path_resource = PathResource(
-    raw_path=dg.EnvVar("RAW_PATH"),
-    manual_path=dg.EnvVar("INTERMEDIATE_PATH"),
-    out_path=dg.EnvVar("OUT_PATH"),
+    data_path=dg.EnvVar("DATA_PATH"),
     ghsl_path=dg.EnvVar("GHSL_GLOBAL_PATH"),
 )
 

@@ -43,7 +43,7 @@ pipeline_2_job = define_asset_job(
         "execution": {
             "config": {
                 "multiprocess": {
-                    "max_concurrent": int(os.getenv("MAX_CONCURRENT_ASSETS")),
+                    "max_concurrent": int(os.environ["MAX_CONCURRENT_ASSETS"]),
                 },
             },
         },

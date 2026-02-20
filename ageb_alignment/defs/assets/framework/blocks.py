@@ -11,7 +11,7 @@ import dagster as dg
         "geometry": dg.AssetIn(key=["geometry", "blocks", "2020"]),
     },
     io_manager_key="gpkg_manager",
-    group_name="framework_blocks"
+    group_name="framework_blocks",
 )
 def framework_blocks_2020(
     census: pd.DataFrame,

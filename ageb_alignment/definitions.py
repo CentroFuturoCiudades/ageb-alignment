@@ -1,80 +1,69 @@
+from pathlib import Path
+
 import toml
 
-from ageb_alignment.assets import (
+import dagster as dg
+from ageb_alignment.defs.assets import (
     built,
-    census,
     differences,
-    framework,
     gcp,
-    geometry,
-    mesh,
     metropoli,
     translate,
-    zones,
 )
-from ageb_alignment.jobs import (
+from ageb_alignment.defs.jobs import (
     generate_framework_job,
     generate_initial_gcp_job,
     pipeline_1_job,
     pipeline_2_job,
 )
-from ageb_alignment.managers import DataFrameIOManager, JSONIOManager, PathIOManager
-from ageb_alignment.resources import (
+from ageb_alignment.defs.managers import (
+    DataFrameIOManager,
+    JSONIOManager,
+    PathIOManager,
+)
+from ageb_alignment.defs.resources import (
     AgebDictResource,
     AgebListResource,
     AgebNestedDictResource,
     PathResource,
     PreferenceResource,
 )
-from dagster import (
-    Definitions,
-    EnvVar,
-    load_assets_from_modules,
-    load_assets_from_package_module,
-)
-
-# Assets
-differences_assets = load_assets_from_modules([differences], group_name="differences")
-metropoli_assets = load_assets_from_modules([metropoli], group_name="metropoli")
-gcp_assets = load_assets_from_modules([gcp], group_name="gcp")
-translate_assets = load_assets_from_package_module(translate, group_name="translate")
-built_assets = load_assets_from_modules([built], group_name="built")
 
 
 # Resources
 path_resource = PathResource(
-    raw_path=EnvVar("RAW_PATH"),
-    manual_path=EnvVar("INTERMEDIATE_PATH"),
-    out_path=EnvVar("OUT_PATH"),
-    ghsl_path=EnvVar("GHSL_GLOBAL_PATH"),
+    raw_path=dg.EnvVar("RAW_PATH"),
+    manual_path=dg.EnvVar("INTERMEDIATE_PATH"),
+    out_path=dg.EnvVar("OUT_PATH"),
+    ghsl_path=dg.EnvVar("GHSL_GLOBAL_PATH"),
 )
 
-with open("./configs/overlaps.toml", encoding="utf8") as f:
+with Path("./configs/overlaps.toml").open(encoding="utf8") as f:
     overlap_list = toml.load(f)
 overlap_list = {f"ageb_{key}": value for key, value in overlap_list.items()}
 overlap_resource = AgebListResource(**overlap_list)
 
-with open("./configs/remove_from_mun.toml", encoding="utf8") as f:
+with Path("./configs/remove_from_mun.toml").open(encoding="utf8") as f:
     remove_from_mun_list = toml.load(f)
 remove_from_mun_list = {
     f"ageb_{key}": value for key, value in remove_from_mun_list.items()
 }
 remove_from_mun_resource = AgebDictResource(**remove_from_mun_list)
 
-with open("./configs/preferences.toml", encoding="utf8") as f:
+with Path("./configs/preferences.toml").open(encoding="utf8") as f:
     preferences = toml.load(f)
 preference_resource = PreferenceResource(
     raise_on_deleted_geometries=preferences["raise_on_deleted_geometries"],
     mesh_level=preferences["mesh_level"],
 )
 
-with open("./configs/switches.toml", encoding="utf8") as f:
+with Path("./configs/switches.toml").open(encoding="utf8") as f:
     switch_list = toml.load(f)
 switch_list = {f"ageb_{key}": value for key, value in switch_list.items()}
 switch_resource = AgebNestedDictResource(**switch_list)
 
 
-with open("./configs/affine.toml", encoding="utf8") as f:
+with Path("./configs/affine.toml").open(encoding="utf8") as f:
     rigid_list = toml.load(f)
 rigid_list = {f"ageb_{key}": value for key, value in rigid_list.items()}
 affine_resource = AgebDictResource(**rigid_list)
@@ -96,13 +85,9 @@ path_gpkg_manager = PathIOManager(path_resource=path_resource, extension=".gpkg"
 
 
 # Definition
-definitions = Definitions.merge(
-    Definitions(
-        assets=metropoli_assets
-        + translate_assets
-        + gcp_assets
-        + differences_assets
-        + built_assets,
+definitions = dg.Definitions.merge(
+    dg.load_from_defs_folder(project_root=Path(__file__).parent.parent),
+    dg.Definitions(
         resources={
             "path_resource": path_resource,
             "overlap_resource": overlap_resource,
@@ -125,9 +110,4 @@ definitions = Definitions.merge(
             pipeline_2_job,
         ],
     ),
-    census.defs,
-    framework.defs,
-    geometry.defs,
-    mesh.defs,
-    zones.defs,
 )

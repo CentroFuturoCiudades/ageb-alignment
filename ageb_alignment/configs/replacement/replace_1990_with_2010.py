@@ -1,4 +1,5 @@
-from ageb_alignment.configs.replacement import replace_1990_2000, replace_2000_2010
+from ageb_alignment.configs.replacement.replace_1990_with_2000 import replace_1990_2000
+from ageb_alignment.configs.replacement.replace_2000_with_2010 import replace_2000_2010
 
 
 def build_common_replacement_map(rl_1990_2000: list, rl_2000_2010: list) -> dict:
@@ -75,4 +76,4 @@ def build_all_replacements(map_1990: dict, map_2000: dict) -> dict:
     return rep_map
 
 
-rep_map = build_all_replacements(replace_1990_2000, replace_2000_2010)
+replace_1990_2010 = build_all_replacements(replace_1990_2000, replace_2000_2010)

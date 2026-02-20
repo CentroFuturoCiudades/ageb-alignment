@@ -9,17 +9,29 @@ dependencies = [
     "dagster>=1.12.14",
     "dagster-dg-cli>=1.12.14",
     "dagster-webserver>=1.12.14",
+    "gdal",
     "geopandas>=1.1.2",
-    "numpy>=2.4.2",
-    "pandas>=3.0.1",
+    "networkx>=3.6.1",
+    "numpy<2",
+    "pandas>=2.3.3",
     "pandas-stubs>=3.0.0.260204",
     "shapely>=2.1.2",
+    "toml>=0.10.2",
 ]
+
+[tool.dg]
+directory_type = "project"
+
+[tool.dg.project]
+root_module = "ageb_alignment"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D", "PLR2004"]
+ignore = ["D", "PLR2004", "PLR0913"]
 
 [tool.basedpyright]
 typeCheckingMode = "standard"
 ignore = ["**/*.ipynb"]
+
+[tool.uv.sources]
+gdal = { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp312-cp312-win_amd64.whl" }

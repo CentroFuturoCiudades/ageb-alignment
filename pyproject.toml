@@ -28,7 +28,7 @@ root_module = "ageb_alignment"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D", "PLR2004", "PLR0913", "COM812"]
+ignore = ["D", "PLR2004", "PLR0913", "COM812", "ANN401"]
 
 [tool.basedpyright]
 typeCheckingMode = "standard"

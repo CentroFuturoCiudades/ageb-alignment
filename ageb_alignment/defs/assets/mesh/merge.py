@@ -21,7 +21,11 @@ def merge_meshes(
     agebs_2020: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
     merged = agebs_1990.rename(
-        columns={"pop_fraction": "1990", "geometry": "geometry_1990"},
+        columns={
+            "pop_fraction": "pop_fraction_1990",
+            "P_12YMAS_fraction": "P_12YMAS_fraction_1990",
+            "geometry": "geometry_1990",
+        },
     )
 
     for year, agebs in zip(
@@ -29,8 +33,14 @@ def merge_meshes(
         (agebs_2000, agebs_2010, agebs_2020),
         strict=True,
     ):
-        temp = agebs[["codigo", "pop_fraction", "geometry"]].rename(
-            columns={"pop_fraction": str(year), "geometry": f"geometry_{year}"},
+        temp = agebs[
+            ["codigo", "pop_fraction", "P_12YMAS_fraction", "geometry"]
+        ].rename(
+            columns={
+                "pop_fraction": f"pop_fraction_{year}",
+                "P_12YMAS_fraction": f"P_12YMAS_fraction_{year}",
+                "geometry": f"geometry_{year}",
+            },
         )
         merged = merged.merge(temp, how="outer", on="codigo")
 

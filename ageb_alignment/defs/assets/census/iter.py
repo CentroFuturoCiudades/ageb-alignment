@@ -136,7 +136,7 @@ def load_census_iter_2000(path_resource: PathResource) -> pd.DataFrame:
 
 
 def load_census_iter_2010_2020(census_path: Path) -> pd.DataFrame:
-    census = (
+    return (
         pd.read_csv(
             census_path,
             low_memory=False,
@@ -153,7 +153,6 @@ def load_census_iter_2010_2020(census_path: Path) -> pd.DataFrame:
         .rename(columns={"ENTIDAD": "CVE_ENT", "MUN": "CVE_MUN", "LOC": "CVE_LOC"})
         .query("CVE_ENT != 0")
     )
-    return census
 
 
 @dg.op
@@ -180,7 +179,7 @@ def load_census_iter_2020(path_resource: PathResource) -> pd.DataFrame:
     return load_census_iter_2010_2020(census_path)
 
 
-def iter_factory(year: int, loading_func: Callable):
+def iter_factory(year: int, loading_func: Callable) -> dg.AssetsDefinition:
     @dg.graph_multi_asset(
         name=f"census_{year}",
         outs={
@@ -206,5 +205,6 @@ dassets = [
             load_census_iter_2010,
             load_census_iter_2020,
         ],
+        strict=True,
     )
 ]

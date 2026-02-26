@@ -49,7 +49,6 @@ def replace_manual_agebs(
     return merged
 
 
-# pylint: disable=no-value-for-parameter
 def framework_agebs_factory(year: int, merge_op: OpDefinition) -> AssetsDefinition:
     load_op = load_manual_agebs_factory(year)
 

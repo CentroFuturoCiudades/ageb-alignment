@@ -15,13 +15,12 @@ def merge_agebs_1990(
         CVEGEO=lambda df: df["CVEGEO"].astype(str).str.zfill(13),
     ).set_index("CVEGEO")
 
-    merged = (
+    return (
         geometry_ageb_1990.join(ageb_1990, how="left")
         .assign(POBTOT=lambda df: df.POBTOT.fillna(0).astype(int))
         .explode()
         .dissolve(by="CVEGEO")
     )
-    return merged
 
 
 framework_agebs_1990 = framework_agebs_factory(1990, merge_agebs_1990)

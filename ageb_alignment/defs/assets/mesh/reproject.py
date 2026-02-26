@@ -50,19 +50,29 @@ def reproject_to_mesh(
     mesh: gpd.GeoDataFrame,
     agebs: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
-    if mesh.crs != agebs.crs:
-        err = f"CRS mismatch: mesh CRS is {mesh.crs}, but agebs CRS is {agebs.crs}"
+    crs = agebs.crs
+    if crs is None:
+        err = "CRS of agebs GeoDataFrame is not defined. Cannot reproject to mesh."
         raise ValueError(err)
+
+    mesh = mesh.to_crs(crs)
 
     agebs = agebs.copy()
     agebs["ageb_area"] = agebs.area
-    intersection: gpd.GeoDataFrame = mesh.overlay(agebs, how="intersection")
-    intersection["pop_fraction"] = (
-        intersection.area / intersection["ageb_area"] * intersection["POBTOT"]
+    intersection: gpd.GeoDataFrame = mesh.overlay(agebs, how="intersection").assign(
+        area_frac=lambda df: df.area.div(df["ageb_area"]),
+        pop_fraction=lambda df: df["area_frac"].mul(df["POBTOT"]),
+        P_12YMAS_fraction=lambda df: df["area_frac"].mul(df["P_12YMAS"]),
     )
+
     return (
-        intersection.groupby("codigo")["pop_fraction"]
-        .sum()
+        intersection.groupby("codigo")
+        .agg(
+            {
+                "pop_fraction": "sum",
+                "P_12YMAS_fraction": "sum",
+            },
+        )
         .reset_index()
         .merge(mesh, how="inner", on="codigo")
         .pipe(gpd.GeoDataFrame, crs=mesh.crs, geometry="geometry")

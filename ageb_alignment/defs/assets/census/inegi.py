@@ -30,6 +30,7 @@ def load_all_census_files_factory(year: int) -> dg.OpDefinition:
                         "AGEB",
                         "MZA",
                         "POBTOT",
+                        "P_12YMAS",
                     ],
                 )
                 .pipe(lambda df: df.set_axis(df.columns.str.upper(), axis=1))
@@ -107,7 +108,6 @@ def agebs_blocks_dispatcher(context: dg.OpExecutionContext, census: pd.DataFrame
         yield dg.Output(get_blocks_from_census(census), output_name="blocks")
 
 
-# pylint: disable=no-value-for-parameter
 def inegi_factory(year: int) -> dg.AssetsDefinition:
     @dg.graph_multi_asset(
         name=f"census_multi_asset_{year}",

@@ -6,10 +6,11 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "contextily>=1.7.0",
-    "dagster>=1.12.14",
-    "dagster-dg-cli>=1.12.14",
-    "dagster-webserver>=1.12.14",
-    "gdal",
+    "dagster>=1.12.14,<1.12.16",
+    "dagster-dg-cli>=1.12.14,<1.12.16",
+    "dagster-webserver>=1.12.14,<1.12.16",
+    "gdal>=3.12.2; sys_platform != 'win32'",
+    "gdal==3.11.4; sys_platform == 'win32'",
     "geopandas>=1.1.2",
     "networkx>=3.6.1",
     "numpy<2",
@@ -35,7 +36,7 @@ typeCheckingMode = "standard"
 ignore = ["**/*.ipynb"]
 
 [tool.uv.sources]
-gdal = { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp312-cp312-win_amd64.whl", marker = "sys_platform == 'win32'" }
+gdal = { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2025.10.25/GDAL-3.11.4-cp312-cp312-win_amd64.whl", marker = "sys_platform == 'win32'" }
 
 [dependency-groups]
 dev = [

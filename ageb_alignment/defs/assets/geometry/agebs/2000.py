@@ -24,10 +24,9 @@ def load_agebs_2000(path_resource: PathResource) -> gpd.GeoDataFrame:
         .to_crs("EPSG:6372")
         .drop(columns=["LAYAGB", "OID_1"])
         .assign(
-            CVEGEO=lambda df: df["CLVAGB"]
-            .astype(str)
-            .str.replace("-", "")
-            .str.zfill(13),
+            CVEGEO=lambda df: (
+                df["CLVAGB"].astype(str).str.replace("-", "").str.zfill(13)
+            ),
             CVE_ENT=lambda df: df["CVEGEO"].str[0:2],
             CVE_MUN=lambda df: df["CVEGEO"].str[2:5],
             CVE_LOC=lambda df: df["CVEGEO"].str[5:9],

@@ -16,4 +16,5 @@ def agebs_factory(year: int) -> dg.AssetsDefinition:
 
     return _asset
 
+
 assets = [agebs_factory(year) for year in range(1990, 2021, 10)]

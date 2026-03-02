@@ -106,18 +106,35 @@ def reprojected_dispatcher(
     agebs_2000: gpd.GeoDataFrame,
     agebs_2010: gpd.GeoDataFrame,
     agebs_2020: gpd.GeoDataFrame,
-) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]:  # pyright: ignore[reportInvalidTypeForm]
+) -> tuple[
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+]:  # pyright: ignore[reportInvalidTypeForm]
     if "reprojected_1990" in context.selected_output_names:
-        yield dg.Output(reproject_to_mesh(mesh, agebs_1990), "reprojected_1990")  # pyright: ignore[reportReturnType]
+        yield dg.Output(
+            reproject_to_mesh(mesh, agebs_1990),
+            "reprojected_1990",
+        )  # pyright: ignore[reportReturnType]
 
     if "reprojected_2000" in context.selected_output_names:
-        yield dg.Output(reproject_to_mesh(mesh, agebs_2000), "reprojected_2000")  # pyright: ignore[reportReturnType]
+        yield dg.Output(
+            reproject_to_mesh(mesh, agebs_2000),
+            "reprojected_2000",
+        )  # pyright: ignore[reportReturnType]
 
     if "reprojected_2010" in context.selected_output_names:
-        yield dg.Output(reproject_to_mesh(mesh, agebs_2010), "reprojected_2010")  # pyright: ignore[reportReturnType]
+        yield dg.Output(
+            reproject_to_mesh(mesh, agebs_2010),
+            "reprojected_2010",
+        )  # pyright: ignore[reportReturnType]
 
     if "reprojected_2020" in context.selected_output_names:
-        yield dg.Output(reproject_to_mesh(mesh, agebs_2020), "reprojected_2020")  # pyright: ignore[reportReturnType]
+        yield dg.Output(
+            reproject_to_mesh(mesh, agebs_2020),
+            "reprojected_2020",
+        )  # pyright: ignore[reportReturnType]
 
 
 @dg.graph_multi_asset(

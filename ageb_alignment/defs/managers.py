@@ -37,7 +37,11 @@ class BaseManager(dg.ConfigurableIOManager):
 
 
 class PathIOManager(BaseManager):
-    def handle_output(self, context: dg.OutputContext, obj: Any) -> None:  # noqa: ANN401
+    def handle_output(
+        self,
+        context: dg.OutputContext,
+        obj: Any,
+    ) -> None:
         raise NotImplementedError
 
     def load_input(self, context: dg.InputContext) -> Path:

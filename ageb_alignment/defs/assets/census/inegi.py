@@ -20,18 +20,20 @@ def load_all_census_files_factory(year: int) -> dg.OpDefinition:
                     path,
                     low_memory=False,
                     na_values=["*", "N/D"],
-                    usecols=lambda x: x.upper()
-                    in [
-                        "ENTIDAD",
-                        "NOM_ENT",
-                        "MUN",
-                        "NOM_MUN",
-                        "LOC",
-                        "AGEB",
-                        "MZA",
-                        "POBTOT",
-                        "P_12YMAS",
-                    ],
+                    usecols=lambda x: (
+                        x.upper()
+                        in [
+                            "ENTIDAD",
+                            "NOM_ENT",
+                            "MUN",
+                            "NOM_MUN",
+                            "LOC",
+                            "AGEB",
+                            "MZA",
+                            "POBTOT",
+                            "P_12YMAS",
+                        ]
+                    ),
                 )
                 .pipe(lambda df: df.set_axis(df.columns.str.upper(), axis=1))
                 .rename(
@@ -65,10 +67,9 @@ def get_agebs_from_census(df: pd.DataFrame) -> pd.DataFrame:
             CVE_MUN=lambda df: df["CVE_MUN"].astype(str).str.zfill(3),
             CVE_LOC=lambda df: df["CVE_LOC"].astype(str).str.zfill(4),
             CVE_AGEB=lambda df: df["CVE_AGEB"].astype(str).str.zfill(4),
-            CVEGEO=lambda df: df["CVE_ENT"]
-            + df["CVE_MUN"]
-            + df["CVE_LOC"]
-            + df["CVE_AGEB"],
+            CVEGEO=lambda df: (
+                df["CVE_ENT"] + df["CVE_MUN"] + df["CVE_LOC"] + df["CVE_AGEB"]
+            ),
         )
         .set_index("CVEGEO")
         .sort_index()
@@ -83,11 +84,13 @@ def get_blocks_from_census(df: pd.DataFrame) -> pd.DataFrame:
     return (
         df.query("CVE_MZA != 0")
         .assign(
-            CVEGEO=lambda df: df.CVE_ENT.astype(str).str.pad(2, "left", "0")
-            + df.CVE_MUN.astype(str).str.pad(3, "left", "0")
-            + df.CVE_LOC.astype(str).str.pad(4, "left", "0")
-            + df.CVE_AGEB.astype(str).str.pad(4, "left", "0")
-            + df.CVE_MZA.astype(str).str.pad(3, "left", "0"),
+            CVEGEO=lambda df: (
+                df.CVE_ENT.astype(str).str.pad(2, "left", "0")
+                + df.CVE_MUN.astype(str).str.pad(3, "left", "0")
+                + df.CVE_LOC.astype(str).str.pad(4, "left", "0")
+                + df.CVE_AGEB.astype(str).str.pad(4, "left", "0")
+                + df.CVE_MZA.astype(str).str.pad(3, "left", "0")
+            ),
         )
         .set_index("CVEGEO")
         .sort_index()

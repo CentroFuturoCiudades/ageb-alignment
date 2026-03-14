@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import toml
+from dagster_components.resources import PostGISResource
 
 import dagster as dg
 from ageb_alignment.defs.managers import (
@@ -13,7 +14,6 @@ from ageb_alignment.defs.resources import (
     AgebListResource,
     AgebNestedDictResource,
     PathResource,
-    PostGISResource,
     PreferenceResource,
 )
 

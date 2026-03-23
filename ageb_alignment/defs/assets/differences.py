@@ -1,7 +1,7 @@
 import geopandas as gpd
+from dagster_components.partitions import zone_partitions
 
 import dagster as dg
-from ageb_alignment.defs.partitions import zone_partitions
 
 
 def differences_factory(start_year: int, end_year: int) -> dg.AssetsDefinition:

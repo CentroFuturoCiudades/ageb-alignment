@@ -1,9 +1,9 @@
 import geopandas as gpd
 import pandas as pd
+from dagster_components.partitions import zone_partitions
+from dagster_components.resources import PostGISResource
 
 import dagster as dg
-from ageb_alignment.defs.partitions import zone_partitions
-from dagster_components.resources import PostGISResource
 
 
 def remove_multipoly(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -61,7 +61,7 @@ def zone_agebs_factory(year: int) -> dg.AssetsDefinition:
                 conn,
                 params={"met_zone": context.partition_key},
                 geom_col="geometry",
-                crs="EPSG:6372"
+                crs="EPSG:6372",
             )
         return remove_multipoly(out).to_crs("EPSG:4326")
 

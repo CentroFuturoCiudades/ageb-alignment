@@ -1,12 +1,12 @@
 import geopandas as gpd
 import numpy as np
+from dagster_components.partitions import zone_partitions
 
 from ageb_alignment.configs.replacement import (
     replace_1990_2000,
     replace_1990_2010,
     replace_2000_2010,
 )
-from ageb_alignment.defs.partitions import zone_partitions
 from dagster import AssetExecutionContext, AssetIn, asset
 
 

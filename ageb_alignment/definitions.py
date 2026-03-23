@@ -1,14 +1,9 @@
 from pathlib import Path
 
 import toml
+from dagster_components.resources import PostGISResource
 
 import dagster as dg
-from ageb_alignment.defs.jobs import (
-    generate_framework_job,
-    generate_initial_gcp_job,
-    pipeline_1_job,
-    pipeline_2_job,
-)
 from ageb_alignment.defs.managers import (
     DataFrameIOManager,
     JSONIOManager,
@@ -26,6 +21,14 @@ from ageb_alignment.defs.resources import (
 path_resource = PathResource(
     data_path=dg.EnvVar("DATA_PATH"),
     ghsl_path=dg.EnvVar("GHSL_GLOBAL_PATH"),
+)
+
+postgis_resource = PostGISResource(
+    host="localhost",
+    port="5432",
+    user=dg.EnvVar("POSTGRES_USER"),
+    password=dg.EnvVar("POSTGRES_PASSWORD"),
+    db=dg.EnvVar("POSTGRES_DB"),
 )
 
 with Path("./configs/overlaps.toml").open(encoding="utf8") as f:
@@ -92,12 +95,7 @@ definitions = dg.Definitions.merge(
             "path_gpkg_manager": path_gpkg_manager,
             "csv_manager": csv_manager,
             "json_manager": json_manager,
+            "postgis_resource": postgis_resource,
         },
-        jobs=[
-            generate_framework_job,
-            generate_initial_gcp_job,
-            pipeline_1_job,
-            pipeline_2_job,
-        ],
     ),
 )

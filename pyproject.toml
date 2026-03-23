@@ -3,21 +3,23 @@ name = "ageb-alignment"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "contextily>=1.7.0",
-    "dagster>=1.12.14,<1.12.16",
-    "dagster-dg-cli>=1.12.14,<1.12.16",
-    "dagster-webserver>=1.12.14,<1.12.16",
-    "gdal>=3.12.2; sys_platform != 'win32'",
-    "gdal==3.11.4; sys_platform == 'win32'",
+    "dagster>=1.12.14",
+    "dagster-components",
+    "dagster-dg-cli>=1.12.14",
+    "dagster-webserver>=1.12.14",
+    "gdal",
     "geopandas>=1.1.2",
     "networkx>=3.6.1",
     "numpy<2",
     "openpyxl>=3.1.5",
     "pandas>=2.3.3",
     "pandas-stubs>=3.0.0.260204",
+    "psycopg2>=2.9.11",
     "shapely>=2.1.2",
+    "sqlalchemy>=2.0.46",
     "toml>=0.10.2",
 ]
 
@@ -36,7 +38,8 @@ typeCheckingMode = "standard"
 ignore = ["**/*.ipynb"]
 
 [tool.uv.sources]
-gdal = { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2025.10.25/GDAL-3.11.4-cp312-cp312-win_amd64.whl", marker = "sys_platform == 'win32'" }
+gdal = { url = "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp312-cp312-win_amd64.whl", marker = "sys_platform == 'win32'" }
+dagster-components = { git = "https://github.com/RodolfoFigueroa/dagster_components" }
 
 [dependency-groups]
 dev = [

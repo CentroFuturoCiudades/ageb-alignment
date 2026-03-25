@@ -3,7 +3,7 @@ from dagster_components.partitions import zone_partitions
 from dagster_components.resources import PostGISResource
 
 import dagster as dg
-from dagster_components.partitions import zone_partitions
+
 
 @dg.op
 def load_mesh(

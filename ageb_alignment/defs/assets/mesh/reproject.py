@@ -1,20 +1,14 @@
-from pathlib import Path
-from typing import assert_never
-
 import geopandas as gpd
-import numpy as np
-import pandas as pd
 from dagster_components.partitions import zone_partitions
+from dagster_components.resources import PostGISResource
 
 import dagster as dg
 from ageb_alignment.defs.partitions import zone_partitions
-from dagster_components.resources import PostGISResource
 
 
 @dg.op
 def load_mesh(
-    context: dg.AssetExecutionContext,
-    postgis_resource: PostGISResource
+    context: dg.AssetExecutionContext, postgis_resource: PostGISResource
 ) -> gpd.GeoDataFrame:
     print(context.partition_key)
     with postgis_resource.connect() as conn:
@@ -27,7 +21,7 @@ def load_mesh(
             """,
             conn,
             params={"zone": context.partition_key},
-            geom_col="geometry"
+            geom_col="geometry",
         )
 
 

@@ -38,7 +38,7 @@ def merge_meshes(
                 "codigo",
                 "pop_fraction",
                 # "P_12YMAS_fraction",
-                "geometry"
+                "geometry",
             ]
         ].rename(
             columns={

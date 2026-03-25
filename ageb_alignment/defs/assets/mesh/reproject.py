@@ -4,6 +4,7 @@ from typing import assert_never
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+from dagster_components.partitions import zone_partitions
 
 import dagster as dg
 from ageb_alignment.defs.partitions import zone_partitions

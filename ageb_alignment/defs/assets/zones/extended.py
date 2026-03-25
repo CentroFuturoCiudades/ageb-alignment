@@ -1,8 +1,8 @@
 import geopandas as gpd
 import pandas as pd
 import shapely
+from dagster_components.partitions import zone_partitions
 
-from ageb_alignment.defs.partitions import zone_partitions
 from dagster import AssetIn, AssetsDefinition, asset
 
 

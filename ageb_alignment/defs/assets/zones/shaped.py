@@ -3,9 +3,9 @@ import subprocess
 from pathlib import Path
 
 import geopandas as gpd
+from dagster_components.partitions import zone_partitions
 
 import dagster as dg
-from ageb_alignment.defs.partitions import zone_partitions
 from ageb_alignment.defs.resources import PathResource, PreferenceResource
 
 

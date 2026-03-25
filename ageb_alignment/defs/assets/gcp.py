@@ -2,9 +2,9 @@ import geopandas as gpd
 import networkx as nx
 import pandas as pd
 import shapely
+from dagster_components.partitions import zone_partitions
 
 import dagster as dg
-from ageb_alignment.defs.partitions import zone_partitions
 
 
 @dg.op

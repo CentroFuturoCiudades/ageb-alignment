@@ -13,7 +13,7 @@ def differences_factory(start_year: int, end_year: int) -> dg.AssetsDefinition:
         group_name="differences",
     )
     def _asset(merged: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-        start_col, end_col = str(start_year), str(end_year)
+        start_col, end_col = f"pop_fraction_{start_year}", f"pop_fraction_{end_year}"
 
         merged = merged[["codigo", start_col, end_col, "geometry"]].copy()
         merged = merged.dropna(subset=[start_col, end_col], how="all")

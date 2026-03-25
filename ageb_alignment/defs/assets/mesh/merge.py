@@ -23,7 +23,7 @@ def merge_meshes(
     merged = agebs_1990.rename(
         columns={
             "pop_fraction": "pop_fraction_1990",
-            "P_12YMAS_fraction": "P_12YMAS_fraction_1990",
+            # "P_12YMAS_fraction": "P_12YMAS_fraction_1990",
             "geometry": "geometry_1990",
         },
     )
@@ -34,11 +34,16 @@ def merge_meshes(
         strict=True,
     ):
         temp = agebs[
-            ["codigo", "pop_fraction", "P_12YMAS_fraction", "geometry"]
+            [
+                "codigo",
+                "pop_fraction",
+                # "P_12YMAS_fraction",
+                "geometry"
+            ]
         ].rename(
             columns={
                 "pop_fraction": f"pop_fraction_{year}",
-                "P_12YMAS_fraction": f"P_12YMAS_fraction_{year}",
+                # "P_12YMAS_fraction": f"P_12YMAS_fraction_{year}",
                 "geometry": f"geometry_{year}",
             },
         )

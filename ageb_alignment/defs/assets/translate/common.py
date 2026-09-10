@@ -1,14 +1,14 @@
+import shlex
+import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from osgeo import gdal
 
 from dagster import AssetExecutionContext
-
-gdal.UseExceptions()
 
 
 def generate_options_str(gcp: np.ndarray, transform_options: str) -> str:
@@ -41,10 +41,34 @@ def load_gcp(gcp_path: Path) -> np.ndarray:
     ].to_numpy()  # Ensure right order
 
 
+def _vector_translate(source: Path, destination: Path, options: str) -> None:
+    """Run GDAL's vector translation command with useful failure messages."""
+    ogr2ogr = shutil.which("ogr2ogr")
+    if ogr2ogr is None:
+        message = (
+            "Could not find the 'ogr2ogr' executable. Install the native GDAL "
+            "tools (for example, `brew install gdal` on macOS)."
+        )
+        raise RuntimeError(message)
+
+    command = [ogr2ogr, *shlex.split(options), str(destination), str(source)]
+    try:
+        subprocess.run(  # noqa: S603 - command arguments are passed without a shell.
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as error:
+        details = error.stderr.strip() or error.stdout.strip()
+        message = f"ogr2ogr failed while translating {source}: {details}"
+        raise RuntimeError(message) from error
+
+
 def translate_geometries_single(ageb_path: Path, options: str) -> gpd.GeoDataFrame:
     with tempfile.TemporaryDirectory() as temp_dir:
         out_path = Path(temp_dir) / "df.gpkg"
-        gdal.VectorTranslate(str(out_path), str(ageb_path), options=options)
+        _vector_translate(ageb_path, out_path, options)
         return gpd.read_file(out_path)
 
 
@@ -58,8 +82,8 @@ def translate_geometries_double(
         temp_path = temp_dir_path / "df_temp.gpkg"
         out_path = temp_dir_path / "df.gpkg"
 
-        gdal.VectorTranslate(str(temp_path), str(ageb_path), options=options_first)
-        gdal.VectorTranslate(str(out_path), str(temp_path), options=options_second)
+        _vector_translate(ageb_path, temp_path, options_first)
+        _vector_translate(temp_path, out_path, options_second)
 
         return gpd.read_file(out_path)
 

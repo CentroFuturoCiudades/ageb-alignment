@@ -41,7 +41,6 @@ dependencies = [
     { name = "dagster" },
     { name = "dagster-dg-cli" },
     { name = "dagster-webserver" },
-    { name = "gdal" },
     { name = "geopandas" },
     { name = "networkx" },
     { name = "numpy" },
@@ -76,7 +75,6 @@ requires-dist = [
     { name = "dagster", specifier = ">=1.12.14" },
     { name = "dagster-dg-cli", specifier = ">=1.12.14" },
     { name = "dagster-webserver", specifier = ">=1.12.14" },
-    { name = "gdal", specifier = ">=3.13.2" },
     { name = "geopandas", specifier = ">=1.1.2" },
     { name = "networkx", specifier = ">=3.6.1" },
     { name = "numpy", specifier = "<2" },
@@ -1238,12 +1236,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/70/b8/c6081521ff70afdff
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d5/08/c2409cb01d5368dcfedcbaffa7d044cc8957d57a9d0855244a5eb4709d30/funcy-2.0-py2.py3-none-any.whl", hash = "sha256:53df23c8bb1651b12f095df764bfb057935d49537a56de211b098f4c79614bb0", size = 30891, upload-time = "2023-03-28T06:22:42.576Z" },
 ]
-
-[[package]]
-name = "gdal"
-version = "3.13.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/8e/da/b29ca833b2dab4f58451ab4f89dc0d29610de7089a8a3fd0d1676a9bde02/gdal-3.13.2.tar.gz", hash = "sha256:495acc5162636068ee151fc699fbaf702ac0849da1956f55566b771d00c8ee42", size = 940413, upload-time = "2026-07-22T12:42:45.178Z" }
 
 [[package]]
 name = "geographiclib"

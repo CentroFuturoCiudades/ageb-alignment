@@ -4,6 +4,18 @@
 
 This project requires an active census database produced with the [`census_processing`](https://github.com/rodolfoFigueroa/census_processing) repository.
 
+Install the native GDAL command-line tools. On macOS with Homebrew:
+
+```
+brew install gdal
+```
+
+Confirm that `ogr2ogr` is available on `PATH`:
+
+```
+ogr2ogr --version
+```
+
 Install the locked Python and Node.js dependencies:
 
 ```

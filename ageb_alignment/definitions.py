@@ -29,7 +29,7 @@ mapshaper_resource = MapshaperResource(
     expected_version="0.6.100",
 )
 
-postgis_resource = PostgresResource(
+postgres_resource = PostgresResource(
     host=dg.EnvVar("POSTGRES_HOST"),
     port=dg.EnvVar("POSTGRES_PORT"),
     user=dg.EnvVar("POSTGRES_USER"),
@@ -88,7 +88,7 @@ definitions = dg.Definitions.merge(
             "remove_from_mun_resource": remove_from_mun_resource,
             "affine_resource": affine_resource,
             "switch_resource": switch_resource,
-            "postgis_resource": postgis_resource,
+            "postgres_resource": postgres_resource,
         },
     ),
 )

@@ -12,9 +12,9 @@ import dagster as dg
     group_name="mesh",
 )
 def load_mesh(
-    context: dg.AssetExecutionContext, postgis_resource: PostgresResource
+    context: dg.AssetExecutionContext, postgres_resource: PostgresResource
 ) -> gpd.GeoDataFrame:
-    with postgis_resource.connect() as conn:
+    with postgres_resource.connect() as conn:
         return gpd.read_postgis(
             """
             SELECT mesh_level_9.* FROM mesh_level_9

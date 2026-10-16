@@ -1,3 +1,5 @@
+from typing import Literal
+
 import geopandas as gpd
 import pandas as pd
 from cfc_dagster_utils.partitions import zone_partitions
@@ -6,6 +8,7 @@ from cfc_dagster_utils.resources import PostgresResource
 import dagster as dg
 
 
+@dg.op(out=dg.Out(io_manager_key="geodataframe_geojson_manager"))
 def remove_multipoly(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
     Removes multipolygons from a GeoDataFrame by exploding them into individual
@@ -43,50 +46,97 @@ def remove_multipoly(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         )
         repeated.append(temp)
 
-    return gpd.GeoDataFrame(pd.concat([nonrepeated, *repeated], ignore_index=True))
+    return gpd.GeoDataFrame(
+        pd.concat([nonrepeated, *repeated], ignore_index=True)
+    ).to_crs("EPSG:4326")
 
 
-def zone_agebs_factory(year: int) -> dg.AssetsDefinition:
-    @dg.asset(
+def load_agebs_1990_2000_factory(year: Literal[1990, 2000]) -> dg.OpDefinition:
+    @dg.op(name=f"load_agebs_{year}")
+    def _op(
+        context: dg.OpExecutionContext, postgres_resource: PostgresResource
+    ) -> gpd.GeoDataFrame:
+        with postgres_resource.connect() as conn:
+            return gpd.read_postgis(
+                f"""
+                SELECT cvegeo,
+                pob1 AS pobtot,
+                geometry
+                    FROM geo_unit_{year}_ageb
+                INNER JOIN scince_{year}_ageb
+                    USING (cvegeo)
+                INNER JOIN geometry_{year}_ageb
+                    USING (cvegeo)
+                WHERE cve_met = %(met_zone)s
+                """,  # noqa: S608
+                con=conn,
+                geom_col="geometry",
+                params={"met_zone": context.partition_key},
+            )
+
+    return _op
+
+
+@dg.op
+def load_agebs_2010(
+    context: dg.OpExecutionContext, postgres_resource: PostgresResource
+) -> gpd.GeoDataFrame:
+    with postgres_resource.connect() as conn:
+        return gpd.read_postgis(
+            """
+            SELECT
+                census_2010_ageb.cvegeo,
+                census_2010_ageb.pobtot,
+                census_2010_ageb.geometry
+            FROM census_2010_ageb
+            WHERE census_2010_ageb.cve_met = %(met_zone)s
+            """,
+            con=conn,
+            geom_col="geometry",
+            params={"met_zone": context.partition_key},
+        )
+
+
+@dg.op
+def load_agebs_2020(
+    context: dg.OpExecutionContext, postgres_resource: PostgresResource
+) -> gpd.GeoDataFrame:
+    with postgres_resource.connect() as conn:
+        return gpd.read_postgis(
+            """
+            SELECT
+                census_2020_ageb.cvegeo,
+                census_2020_ageb.pobtot,
+                census_2020_ageb.geometry
+            FROM census_2020_ageb
+            INNER JOIN census_2020_loc
+                ON census_2020_ageb.cve_loc = census_2020_loc.cvegeo
+            INNER JOIN census_2020_mun
+                ON census_2020_loc.cve_mun = census_2020_mun.cvegeo
+            WHERE census_2020_mun.cve_met = %(met_zone)s
+            """,
+            con=conn,
+            geom_col="geometry",
+            params={"met_zone": context.partition_key},
+        )
+
+
+load_agebs_op_map = {
+    1990: load_agebs_1990_2000_factory(1990),
+    2000: load_agebs_1990_2000_factory(2000),
+    2010: load_agebs_2010,
+    2020: load_agebs_2020,
+}
+
+
+def zone_agebs_factory(year: Literal[1990, 2000, 2010, 2020]) -> dg.AssetsDefinition:
+    @dg.graph_asset(
         key=["zone_agebs", "initial", str(year)],
         partitions_def=zone_partitions,
-        io_manager_key="geodataframe_geojson_manager",
         group_name="initial",
     )
-    def _asset(
-        context: dg.AssetExecutionContext,
-        postgis_resource: PostgresResource,
-    ) -> gpd.GeoDataFrame:
-        if year == 2020:
-            query = """
-                SELECT
-                    census_2020_ageb.cvegeo,
-                    census_2020_ageb.pobtot,
-                    census_2020_ageb.geometry
-                FROM census_2020_ageb
-                INNER JOIN census_2020_mun
-                    ON census_2020_ageb.cve_mun = census_2020_mun.cvegeo
-                WHERE census_2020_mun.cve_met = %(met_zone)s
-                """
-        else:
-            query = f"""
-                SELECT
-                    census_{year}_ageb.cvegeo,
-                    census_{year}_ageb.pobtot,
-                    census_{year}_ageb.geometry
-                FROM census_{year}_ageb
-                WHERE census_{year}_ageb.cve_met = %(met_zone)s
-                """  # noqa: S608 TODO: Parameterize the year in the table name
-
-        with postgis_resource.connect() as conn:
-            out = gpd.read_postgis(
-                query,
-                conn,
-                params={"met_zone": context.partition_key},
-                geom_col="geometry",
-                crs="EPSG:6372",
-            )
-        return remove_multipoly(out).to_crs("EPSG:4326")
+    def _asset() -> gpd.GeoDataFrame:
+        return remove_multipoly(load_agebs_op_map[year]())
 
     return _asset
 

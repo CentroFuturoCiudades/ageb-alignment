@@ -2,6 +2,7 @@ import geopandas as gpd
 from cfc_dagster_utils.partitions import zone_partitions
 
 import dagster as dg
+from ageb_alignment.defs.assets.mesh.validation import validate_cell_codes
 
 
 @dg.asset(
@@ -20,6 +21,13 @@ def merge_meshes(
     agebs_2010: gpd.GeoDataFrame,
     agebs_2020: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
+    for year, agebs in zip(
+        (1990, 2000, 2010, 2020),
+        (agebs_1990, agebs_2000, agebs_2010, agebs_2020),
+        strict=True,
+    ):
+        validate_cell_codes(agebs, source=f"reprojected/base/{year}")
+
     merged = agebs_1990.rename(
         columns={
             "pop_fraction": "pop_fraction_1990",
@@ -44,7 +52,7 @@ def merge_meshes(
                 "geometry": f"geometry_{year}",
             },
         )
-        merged = merged.merge(temp, how="outer", on="codigo")
+        merged = merged.merge(temp, how="outer", on="codigo", validate="one_to_one")
 
     for year in (2000, 2010, 2020):
         merged["geometry_1990"] = merged["geometry_1990"].fillna(

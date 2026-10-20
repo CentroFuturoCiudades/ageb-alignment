@@ -59,3 +59,16 @@ By clicking **Materialize all** on the top-right corner, a dialogue will pop up 
 * `reprojected/base/<year>`: Aligned population counts reprojected to INEGI's geostatistical mesh.
 * `reprojected/merged`: Same reprojected population counts as the previous step, but with all years inside a single database.
 * `differences/<year>`: Mesh population loss/gain for each possible year combination.
+
+## Verification
+
+Run the Python checks and full test suite with coverage:
+
+```sh
+uv run ruff format .
+uv run ruff check .
+uv run ty check
+uv run pytest --cov=ageb_alignment --cov-report=term-missing --cov-report=xml:coverage.xml
+```
+
+All tests run without a live database. Database access in loader tests is mocked.

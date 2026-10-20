@@ -1,6 +1,6 @@
 outs:
-- md5: 22aa59e5928efbd47a0c5b046d60b3a9.dir
-  size: 2503025
-  nfiles: 5
+- md5: 2ef5d3d0aafbbc1eaaaa6c80e7d23cfd.dir
+  size: 7867482
+  nfiles: 69
   hash: md5
   path: merged
